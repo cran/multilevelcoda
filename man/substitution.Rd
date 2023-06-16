@@ -2,16 +2,16 @@
 % Please edit documentation in R/substitution.R
 \name{substitution}
 \alias{substitution}
-\title{Substitution Model.}
+\title{Multilevel Compositional Substitution Model.}
 \usage{
 substitution(
   object,
   delta,
   basesub = NULL,
-  regrid = NULL,
   summary = TRUE,
+  ref = c("grandmean", "clustermean"),
   level = c("between", "within"),
-  type = c("conditional", "marginal"),
+  weight = NULL,
   ...
 )
 }
@@ -24,34 +24,43 @@ substitution(
 This data set can be computed using function \code{\link{basesub}}.
 If \code{NULL}, all possible pairwise substitution of compositional parts are used.}
 
-\item{regrid}{If non-\code{NULL}, a \code{data.table} of reference grid consisting
-of combinations of covariates over which predictions are made.
-If \code{NULL}, the reference grid is constructed via \code{\link{ref_grid}}.}
-
 \item{summary}{A logical value.
 Should the estimate at each level of the reference grid (\code{FALSE})
-or their average (\code{TRUE}) be returned? Default to \code{TRUE}.}
+or their average (\code{TRUE}) be returned?
+Default to \code{TRUE}.
+Only applicable for model with covariates in addition to
+the isometric log-ratio coordinates (i.e., adjusted model).}
+
+\item{ref}{Either a character value or vector or a dataset.
+\code{ref} can be \code{grandmean} and/or \code{clustermean}, or
+a \code{data.frame} or \code{data.table} of user's specified reference grid consisting
+of combinations of covariates over which predictions are made.
+User's specified reference grid only applicable to substitution model
+using a single reference composition value
+(e.g., \code{clustermean} or user's specified). Required.}
 
 \item{level}{A character string or vector.
-Should the estimate be at the \code{between}-person and/or \code{within}-person level? Required.}
+Should the estimate be at the \code{between} and/or \code{within} level? Required.}
 
-\item{type}{A character string or vector.
-Should the estimate be \code{conditional} mean or average \code{marginal} mean? Required.}
+\item{weight}{A character value specifying the weight to use in calculation of the reference composition.
+\code{weight} can be \code{equal} which gives equal weight to units (e.g., individuals) or
+\code{proportional} which weights in proportion to the frequencies of units being averaged
+(e.g., observations across individuals)
+Default to \code{equal}.}
 
 \item{...}{Additional arguments to be passed to \code{\link{describe_posterior}}.}
 }
 \value{
-A list containing the result of multilevel compositional substitution model.
-Each element of the list is the estimation for a compositional part
-and include at least six elements.
+A list containing the results of multilevel compositional substitution model.
+The first four lists contain the results of the substitution estimation for a compositional part.
 \itemize{
 \item{\code{Mean}}{ Posterior means.}
 \item{\code{CI_low}} and \item{\code{CI_high}}{ 95\% credible intervals.}
 \item{\code{Delta}}{ Amount substituted across compositional parts.}
 \item{\code{From}}{ Compositional part that is substituted from.}
 \item{\code{To}}{ Compositional parts that is substituted to.}
-\item{\code{Level}}{Level where changes in composition takes place. Either }
-\item{\code{EffectType}}{Either estimated \code{conditional} or average \code{marginal} changes.}
+\item{\code{Level}}{ Level where changes in composition takes place. Either }
+\item{\code{Reference}}{ Either \code{grandmean}, \code{clustermean}, or \code{users}}
 }
 }
 \description{
@@ -63,6 +72,7 @@ present in the \code{\link{brmcoda}} object.
 }
 \examples{
 \donttest{
+if(requireNamespace("cmdstanr")){
 data(mcompd)
 data(sbp)
 data(psub)
@@ -73,9 +83,10 @@ cilr <- compilr(data = mcompd, sbp = sbp,
 m <- brmcoda(compilr = cilr, 
              formula = STRESS ~ bilr1 + bilr2 + bilr3 + bilr4 + 
                                 wilr1 + wilr2 + wilr3 + wilr4 + (1 | ID), 
-             chain = 1, iter = 500)
+             chain = 1, iter = 500, backend = "cmdstanr")
              
-subm <- substitution(object = m, delta = c(1, 10),
-                     type = "conditional", level = c("between", "within"))
-}
+subm <- substitution(object = m, delta = 5,
+                     ref = c("grandmean", "clustermean"), 
+                     level = c("between", "within"))
+}}
 }

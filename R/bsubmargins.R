@@ -1,4 +1,4 @@
-#' @title Between-person Average Marginal Substitution Model.
+#' @title Between-person Average Substitution.
 #'
 #' @description
 #' Using a fitted model object, estimates the average marginal difference 
@@ -12,23 +12,26 @@
 #' @param basesub A \code{data.frame} or \code{data.table} of the base possible substitution of compositional parts.
 #' This data set can be computed using function \code{\link{basesub}}. 
 #' If \code{NULL}, all possible pairwise substitution of compositional parts are used.
-#' @param level A character string or vector. 
-#' Should the estimate be at the \code{between}-person and/or \code{within}-person level? Required.
-#' @param type A character string or vector. 
-#' Should the estimate be \code{conditional} mean or average \code{marginal} mean? Required.
+#' @param ref A character string. Default to \code{clustermean}.
+#' @param level A character string. Default to \code{between}.
+#' @param weight A character value specifying the weight to use in calculation of the reference composition.
+#' \code{weight} can be \code{equal} which gives equal weight to units (e.g., individuals) or
+#' \code{proportional} which weights in proportion to the frequencies of units being averaged 
+#' (e.g., observations across individuals)
+#' Default to \code{equal}.
 #' @param ... Additional arguments to be passed to \code{\link{describe_posterior}}.
 #' 
 #' @return A list containing the result of multilevel compositional substitution model.
 #' Each element of the list is the estimation for a compositional part 
-#' and include at least six elements.
+#' and include at least eight elements.
 #' \itemize{
 #'   \item{\code{Mean}}{ Posterior means.}
 #'   \item{\code{CI_low}} and \item{\code{CI_high}}{ 95% credible intervals.}
 #'   \item{\code{Delta}}{ Amount substituted across compositional parts.}
 #'   \item{\code{From}}{ Compositional part that is substituted from.}
 #'   \item{\code{To}}{ Compositional parts that is substituted to.}
-#'   \item{\code{Level}}{Level where changes in composition takes place.}
-#'   \item{\code{EffectType}}{Either estimated `conditional` or average `marginal` changes.}
+#'   \item{\code{Level}}{ Level where changes in composition takes place. Either }
+#'   \item{\code{Reference}}{ Either \code{grandmean}, \code{clustermean}, or \code{users}}
 #' }
 #'
 #' @importFrom data.table as.data.table copy :=
@@ -37,6 +40,7 @@
 #' @export
 #' @examples
 #' \donttest{
+#' if(requireNamespace("cmdstanr")){
 #' data(psub)
 #' data(mcompd)
 #' data(psub)
@@ -45,34 +49,56 @@
 #' 
 #' m <- brmcoda(compilr = cilr, 
 #'              formula = STRESS ~ bilr1 + bilr2 + bilr3 + bilr4 + wilr1 + 
-#'              wilr2 + wilr3 + wilr4 + Female + (1 | ID), chains = 1, iter = 500)
-#'                
+#'                                 wilr2 + wilr3 + wilr4 + Female + (1 | ID), 
+#'              chains = 1, iter = 500,
+#'              backend = "cmdstanr")
+#'              
 #' subm <- bsubmargins(object = m, basesub = psub, delta = 5)
-#' }
-bsubmargins <- function (object, delta, basesub, 
-                         level = "between", type = "marginal",
+#' }}
+bsubmargins <- function (object,
+                         delta,
+                         basesub,
+                         ref = "clustermean",
+                         level = "between",
+                         weight = NULL,
                          ...) {
   
-  # between-person composition
-  b <- object$CompIlr$BetweenComp
-  b <- as.data.table(clo(b, total = object$CompIlr$total))
-
+  d0 <- build.rg(object = object,
+                 ref = ref,
+                 weight = weight,
+                 fill = FALSE)
+  
+  # error if delta out of range
+  comp0 <- d0[, colnames(object$CompILR$BetweenComp), with = FALSE]
+  
   delta <- as.integer(delta)
+  if(isTRUE(any(all(delta) > lapply(comp0, min)))) {
+    stop(sprintf(
+      "delta value should be less than or equal to %s, which is
+  the amount of composition part available for pairwise substitution.",
+  paste0(round(min(lapply(comp0, min))), collapse = ", ")
+    ))
+  }
+
+  # y0margins --------------------------------
+  y0 <- fitted(
+    object$Model,
+    newdata = d0,
+    re_formula = NA,
+    summary = FALSE
+  )
+  y0 <- rowMeans(y0) # average across participants when there is no change
   
-  # model for no change
-  bilr <- object$CompIlr$BetweenILR
-  wilr <- as.data.table(matrix(0, nrow = nrow(bilr), ncol = ncol(bilr)))
-  
-  colnames(wilr) <- paste0("wilr", seq_len(ncol(wilr)))
-  colnames(bilr) <- paste0("bilr", seq_len(ncol(bilr)))
-  
-  samed <- cbind(bilr, wilr, object$CompIlr$data)
-  ysame <- fitted(object$Model, newdata = samed, re_formula = NA, summary = FALSE)
-  ysame <- rowMeans(ysame) # average across participants when there is no change
-  
+  # ybmargins ---------------------------------
   # substitution model
-  out <- .get.bsubmargins(object = object, b = b,
-                          basesub = basesub,
-                          ysame = ysame, delta = delta, 
-                          level = level, type = type)
+  out <- .get.bsubmargins(
+    object = object,
+    delta = delta,
+    basesub = basesub,
+    comp0 = comp0,
+    d0 = d0,
+    y0 = y0,
+    level = level,
+    ref = ref
+  )
 }

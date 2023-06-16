@@ -2,9 +2,17 @@
 % Please edit documentation in R/bsubmargins.R
 \name{bsubmargins}
 \alias{bsubmargins}
-\title{Between-person Average Marginal Substitution Model.}
+\title{Between-person Average Substitution.}
 \usage{
-bsubmargins(object, delta, basesub, level = "between", type = "marginal", ...)
+bsubmargins(
+  object,
+  delta,
+  basesub,
+  ref = "clustermean",
+  level = "between",
+  weight = NULL,
+  ...
+)
 }
 \arguments{
 \item{object}{A fitted \code{\link{brmcoda}} object. Required.}
@@ -15,26 +23,30 @@ bsubmargins(object, delta, basesub, level = "between", type = "marginal", ...)
 This data set can be computed using function \code{\link{basesub}}.
 If \code{NULL}, all possible pairwise substitution of compositional parts are used.}
 
-\item{level}{A character string or vector.
-Should the estimate be at the \code{between}-person and/or \code{within}-person level? Required.}
+\item{ref}{A character string. Default to \code{clustermean}.}
 
-\item{type}{A character string or vector.
-Should the estimate be \code{conditional} mean or average \code{marginal} mean? Required.}
+\item{level}{A character string. Default to \code{between}.}
+
+\item{weight}{A character value specifying the weight to use in calculation of the reference composition.
+\code{weight} can be \code{equal} which gives equal weight to units (e.g., individuals) or
+\code{proportional} which weights in proportion to the frequencies of units being averaged
+(e.g., observations across individuals)
+Default to \code{equal}.}
 
 \item{...}{Additional arguments to be passed to \code{\link{describe_posterior}}.}
 }
 \value{
 A list containing the result of multilevel compositional substitution model.
 Each element of the list is the estimation for a compositional part
-and include at least six elements.
+and include at least eight elements.
 \itemize{
 \item{\code{Mean}}{ Posterior means.}
 \item{\code{CI_low}} and \item{\code{CI_high}}{ 95\% credible intervals.}
 \item{\code{Delta}}{ Amount substituted across compositional parts.}
 \item{\code{From}}{ Compositional part that is substituted from.}
 \item{\code{To}}{ Compositional parts that is substituted to.}
-\item{\code{Level}}{Level where changes in composition takes place.}
-\item{\code{EffectType}}{Either estimated \code{conditional} or average \code{marginal} changes.}
+\item{\code{Level}}{ Level where changes in composition takes place. Either }
+\item{\code{Reference}}{ Either \code{grandmean}, \code{clustermean}, or \code{users}}
 }
 }
 \description{
@@ -46,6 +58,7 @@ present in the \code{\link{brmcoda}} object.
 }
 \examples{
 \donttest{
+if(requireNamespace("cmdstanr")){
 data(psub)
 data(mcompd)
 data(psub)
@@ -54,8 +67,10 @@ cilr <- compilr(data = mcompd[ID \%in\% 1:10, .SD[1:3], by = ID], sbp = sbp,
 
 m <- brmcoda(compilr = cilr, 
              formula = STRESS ~ bilr1 + bilr2 + bilr3 + bilr4 + wilr1 + 
-             wilr2 + wilr3 + wilr4 + Female + (1 | ID), chains = 1, iter = 500)
-               
+                                wilr2 + wilr3 + wilr4 + Female + (1 | ID), 
+             chains = 1, iter = 500,
+             backend = "cmdstanr")
+             
 subm <- bsubmargins(object = m, basesub = psub, delta = 5)
-}
+}}
 }

@@ -1,4 +1,4 @@
-#' @title Average Marginal Substitution Model.
+#' @title Average Marginal Substitution.
 #'
 #' @description
 #' Using a fitted model object, estimates the the average marginal difference 
@@ -27,8 +27,8 @@
 #'   \item{\code{Delta}}{ Amount substituted across compositional parts.}
 #'   \item{\code{From}}{ Compositional part that is substituted from.}
 #'   \item{\code{To}}{ Compositional parts that is substituted to.}
-#'   \item{\code{Level}}{Level where changes in composition takes place.}
-#'   \item{\code{EffectType}}{Either estimated `conditional` or average `marginal` changes.}
+#'   \item{\code{Level}}{ Level where changes in composition takes place.}
+#'   \item{\code{EffectType}}{ Either estimated `conditional` or average `marginal` changes.}
 #' }
 #'
 #' @importFrom data.table as.data.table copy :=
@@ -36,7 +36,7 @@
 #' @importFrom stats fitted
 #' @export
 #' @examples
-#' \donttest{
+#' \dontrun{
 #' data(mcompd)
 #' data(sbp)
 #' data(psub)
@@ -46,29 +46,46 @@
 #' # model with compositional predictor
 #' m <- brmcoda(compilr = cilr, 
 #'              formula = STRESS ~ ilr1 + ilr2 + ilr3 + ilr4 + (1 | ID), 
-#'              chain = 1, iter = 500)
+#'              chain = 1, iter = 500,
+#'              backend = "cmdstanr")
+#'              
 #' subm <- submargins(object = m, basesub = psub, delta = 5)
 #' }
-submargins <- function(object, delta, basesub,
-                       level = "total", type = "marginal",
+submargins <- function(object,
+                       delta,
+                       basesub,
+                       level = "total",
+                       type = "marginal",
                        ...) {
   
   # full composition
-  t <- object$CompIlr$TotalComp
-  t <- as.data.table(clo(t, total = object$CompIlr$total))
+  t <- object$CompILR$TotalComp
+  t <- as.data.table(clo(t, total = object$CompILR$total))
   
+  # error if delta out of range
+  if(isTRUE(any(delta > apply(t, 2, min)))) {
+    stop(sprintf(
+      "delta value should be less than or equal to %s, which is
+  the amount of composition part available for pairwise substitution.",
+  paste0(round(min(apply(t, 2, min))), collapse = ", ")
+    ))
+  }
   delta <- as.integer(delta)
   
   # model for no change
-  tilr <- object$CompIlr$TotalILR
-
-  samed <- cbind(tilr, object$CompIlr$data)
-  ysame <- fitted(object$Model, newdata = samed, re_formula = NA, summary = FALSE)
-  ysame <- rowMeans(ysame) # average across participants when there is no change
+  tilr0 <- object$CompILR$TotalILR
+  
+  d0 <- cbind(tilr0, object$CompILR$data)
+  y0 <- fitted(object$Model, newdata = d0, re_formula = NA, summary = FALSE)
+  y0 <- rowMeans(y0) # average across participants when there is no change
   
   # substitution model
-  out <- .get.submargins(object = object, t = t,
-                         basesub = basesub,
-                         ysame = ysame, delta = delta, 
-                         level = level, type = type)
+  out <- .get.submargins(
+    object = object,
+    t = t,
+    basesub = basesub,
+    y0 = y0,
+    delta = delta,
+    level = level,
+    type = type)
 }

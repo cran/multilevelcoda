@@ -18,9 +18,9 @@ Details of the model specification can be found in \code{\link{brmsformula}}.}
 \item{...}{Further arguments passed to \code{\link{brm}}.}
 }
 \value{
-A list with two elements
+A \code{\link{brmcoda}} with two elements
 \itemize{
-\item{\code{CompIlr}}{ An object of class \code{compilr} used in the \code{brm} model. }
+\item{\code{CompILR}}{ An object of class \code{compilr} used in the \code{brm} model. }
 \item{\code{Model}}{ An object of class \code{brmsfit}, which contains the posterior draws
 along with many other useful information about the model.}
 }
@@ -29,7 +29,8 @@ along with many other useful information about the model.}
 This function fits a \code{brm} model with multilevel ILR coordinates.
 }
 \examples{
-\donttest{
+\dontrun{
+if(requireNamespace("cmdstanr")){
 data(mcompd)
 data(sbp)
 cilr <- compilr(data = mcompd, sbp = sbp, 
@@ -42,14 +43,16 @@ names(cilr$TotalILR)
 
 # model with compositional predictor at between and within-person levels
 m1 <- brmcoda(compilr = cilr, 
- formula = STRESS ~ bilr1 + bilr2 + bilr3 + bilr4 +
- wilr1 + wilr2 + wilr3 + wilr4 + (1 | ID), 
-             chain = 1, iter = 500)
-
+              formula = STRESS ~ bilr1 + bilr2 + bilr3 + bilr4 +
+                                 wilr1 + wilr2 + wilr3 + wilr4 + (1 | ID), 
+              chain = 1, iter = 500,
+              backend = "cmdstanr")
+             
 # model with compositional outcome  
 m2 <- brmcoda(compilr = cilr, 
- formula = mvbind(ilr1, ilr2, ilr3, ilr4) ~ STRESS + Female + (1 | ID),
- chain = 1, iter = 500) 
-               
-}
+              formula = mvbind(ilr1, ilr2, ilr3, ilr4) ~ STRESS + Female + (1 | ID),
+              chain = 1, iter = 500,
+              backend = "cmdstanr")
+             
+}} 
 }

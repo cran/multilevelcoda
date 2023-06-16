@@ -1,44 +1,51 @@
-#' @title Within-person Basic Substitution Model
+#' @title Within-person Simple Substitution.
 #' 
 #' @description
 #' Using a fitted model object, estimate the difference in outcomes
-#' when compositional parts are substituted for specific unit(s) at `within-person` level. 
+#' when compositional parts are substituted for specific unit(s) at `within` level. 
 #' The \code{wsub} output encapsulates 
 #' the substitution results for all compositional parts
 #' present in the \code{\link{brmcoda}} object.
-#' 
-#' Notes: The reference composition for substitution model 
-#' is the compositional mean of the data set provided.
-#' For average marginal effect, use \code{\link{wsubmargins}}.
 #'
 #' @param object A fitted \code{\link{brmcoda}} object. Required.
 #' @param delta A integer, numeric value or vector indicating the amount of substituted change between compositional parts.
 #' @param basesub A \code{data.frame} or \code{data.table} of the base possible substitution of compositional parts.
 #' This data set can be computed using function \code{\link{basesub}}. 
 #' If \code{NULL}, all possible pairwise substitution of compositional parts are used.
-#' @param regrid If non-\code{NULL}, a \code{data.table} of reference grid consisting 
+#' @param ref Either a character value or vector or a dataset.
+#' \code{ref} can be \code{grandmean} or
+#' a \code{data.frame} or \code{data.table} of user's specified reference grid consisting
 #' of combinations of covariates over which predictions are made.
-#' If \code{NULL}, the reference grid is constructed via \code{\link{ref_grid}}.
+#' User's specified reference grid only applicable to substitution model
+#' using a single reference composition value
+#' (e.g., \code{clustermean} or user's specified). Default to \code{grandmean}.
 #' @param summary A logical value. 
 #' Should the estimate at each level of the reference grid (\code{FALSE}) 
-#' or their average (\code{TRUE}) be returned? Default to \code{TRUE}.
-#' @param level A character string or vector. 
-#' Should the estimate be at the \code{between}-person and/or \code{within}-person level? Required.
-#' @param type A character string or vector. 
-#' Should the estimate be \code{conditional} mean or average \code{marginal} mean? Required.
+#' or their average (\code{TRUE}) be returned?
+#' Default to \code{TRUE}.
+#' Only applicable for model with covariates in addition to
+#' the isometric log-ratio coordinates (i.e., adjusted model).
+#' @param level A character string or vector.
+#' Should the estimate be at the \code{between} and/or \code{within} level?
+#' Default to \code{within}.
+#' @param weight A character value specifying the weight to use in calculation of the reference composition.
+#' \code{weight} can be \code{equal} which gives equal weight across units (e.g., individuals) or
+#' \code{proportional} which weights in proportion to the frequencies of units being averaged 
+#' (e.g., observations across individuals)
+#' Default to \code{equal}.
 #' @param ... Additional arguments to be passed to \code{\link{describe_posterior}}.
 #' 
 #' @return A list containing the result of multilevel compositional substitution model.
 #' Each element of the list is the estimation for a compositional part 
-#' and include at least six elements.
+#' and include at least eight elements.
 #' \itemize{
 #'   \item{\code{Mean}}{ Posterior means.}
 #'   \item{\code{CI_low}} and \item{\code{CI_high}}{ 95% credible intervals.}
 #'   \item{\code{Delta}}{ Amount substituted across compositional parts.}
 #'   \item{\code{From}}{ Compositional part that is substituted from.}
 #'   \item{\code{To}}{ Compositional parts that is substituted to.}
-#'   \item{\code{Level}}{Level where changes in composition takes place.}
-#'   \item{\code{EffectType}}{Either estimated `conditional` or average `marginal` changes.}
+#'   \item{\code{Level}}{ Level where changes in composition takes place. Either }
+#'   \item{\code{Reference}}{ Either \code{grandmean}, \code{clustermean}, or \code{users}}
 #' }
 #' 
 #' @importFrom data.table as.data.table copy :=
@@ -50,6 +57,7 @@
 #' @export
 #' @examples
 #' \donttest{
+#' if(requireNamespace("cmdstanr")){
 #' data(mcompd)
 #' data(sbp)
 #' data(psub)
@@ -60,85 +68,73 @@
 #' m <- brmcoda(compilr = cilr, 
 #'              formula = STRESS ~ bilr1 + bilr2 + bilr3 + bilr4 + 
 #'                                 wilr1 + wilr2 + wilr3 + wilr4 + (1 | ID), 
-#'              chain = 1, iter = 500)
+#'              chain = 1, iter = 500,
+#'              backend = "cmdstanr")
 #'              
 #' subm <- wsub(object = m, basesub = psub, delta = 5)
-#' }
-wsub <- function(object, delta, basesub, 
-                 regrid = NULL, summary = TRUE, 
-                 level = "within", type = "conditional",
+#' }}
+wsub <- function(object,
+                 basesub,
+                 delta,
+                 summary = TRUE,
+                 ref = "grandmean",
+                 level = "within",
+                 weight = NULL,
                  ...) {
-  
-  # compositional mean
-  b <- object$CompIlr$BetweenComp
-  
-  mcomp <- mean(b, robust = TRUE)
-  mcomp <- clo(mcomp, total = object$CompIlr$total)
-  mcomp <- as.data.table(t(mcomp))
-
-  # input for substitution model
-  ID <- 1 # to make fitted() happy
-  delta <- as.integer(delta)
-  
-  # model for no change
-  bilr <- ilr(mcomp, V = object$CompIlr$psi)
-  bilr <- as.data.table(t(bilr))
-  wilr <- as.data.table(matrix(0, nrow = nrow(bilr), ncol = ncol(bilr)))
-  colnames(wilr) <- paste0("wilr", seq_len(ncol(wilr)))
-  colnames(bilr) <- paste0("bilr", seq_len(ncol(bilr)))
-
-  # check covariates
-  ilrn <- c(names(object$CompIlr$BetweenILR), names(object$CompIlr$WithinILR)) # get ilr names in brm model
-  vn <- do.call(rbind, find_predictors(object$Model)) # get all varnames in brm model
-
-  # if there is no covariates
-  # number of variables in the brm model = number of ilr coordinates
-  if (isTRUE(identical(length(vn), length(ilrn)))) { # unadj subsitution model
-    if (isFALSE(is.null(regrid))) {
-      warning(paste(
-        "This is an unadjusted model, but a reference grid was provided.",
-        "  Please note that the covariates provided in the reference grid",
-        "  need to be present in 'brmcoda' model object.",
-        "  Unadjusted substitution model was estimated.",
+  # d0 -------------------------------
+  if (isTRUE(ref == "grandmean")) {
+    d0 <- build.rg(object = object,
+                   ref = ref,
+                   weight = weight,
+                   fill = FALSE)
+  } else {
+    if (isFALSE(inherits(ref, c("data.table", "data.frame", "matrix")))) {
+      stop("ref must be 'grandmean' or a data table, data frame or matrix.")
+    }
+    if(isFALSE(
+      identical(colnames(ref),
+                colnames(as.data.table(ref_grid(object$Model)@grid))))) { # ensure all covs are provided
+      stop(paste(
+        "'ref' should contains information about",
+        "  the covariates in 'brmcoda' model to estimate the substitution model.",
+        "  Please provide a different reference grid or build one using `build.rg()`.",
         sep = "\n"))
     }
-    
-    dsame <- cbind(bilr, wilr, ID)
-    ysame <- fitted(object$Model, newdata = dsame, re_formula = NA, summary = FALSE)
-    
+    d0 <- ref
+    ref <- "users"
+  }
+  d0 <- as.data.table(d0)
+  
+  # error if delta out of range
+  comp0 <- d0[1, colnames(object$CompILR$BetweenComp), with = FALSE]
+  
+  delta <- as.integer(delta)
+  if(isTRUE(any(delta > min(comp0)))) {
+    stop(sprintf(
+      "delta value should be less than or equal to %s, which is
+  the amount of composition part available for pairwise substitution.",
+  round(min(comp0), 2)
+    ))
+  }
+  
+  # y0 --------------------------------
+  y0 <- fitted(
+    object$Model,
+    newdata = d0,
+    re_formula = NA,
+    summary = FALSE)
+  
+  # yw ---------------------------------
     # substitution model
-    out <- get.wsub(object = object, basesub = basesub,
-                    mcomp = mcomp, delta = delta, ysame = ysame, summary = summary, 
-                    level = level, type = type)
-    
-    } else { # adj subsitution model
-      # reference grid containing covariates
-      rg <- as.data.table(ref_grid(object$Model) @grid)
-      cv <- colnames(rg) %snin% c(ilrn, ".wgt.")
-      
-      if (isFALSE(is.null(regrid))) { # check user's specified reference grid
-        if(isFALSE(identical(colnames(regrid), cv))) { # ensure all covs are provided
-          stop(paste(
-            "'regrid' should contains information about",
-            "  the covariates in 'brmcoda' model to estimate the substitution model.",
-            "  It should not include ILR variables nor any column names starting with 'bilr', 'wilr', or 'ilr',",
-            "  as these variables will be calculated by substitution model.",
-            "  Please provide a different reference grid.",
-            sep = "\n"))
-          } else {
-            refg <- regrid
-            }
-        } else { # use default rg
-          refg <- rg[, cv, with = FALSE]
-          }
-      
-      dsame <- cbind(bilr, wilr, ID, refg)
-      ysame <- fitted(object$Model, newdata = dsame, re_formula = NA, summary = FALSE)
-      
-      # substitution model
-      out <- get.wsub(object = object, basesub = basesub,
-                      mcomp = mcomp, delta = delta, ysame = ysame,
-                      summary = summary, cv = cv, refg = refg, 
-                      level = level, type = type)
-    }
+    out <- get.wsub(
+      object = object,
+      basesub = basesub,
+      comp0 = comp0,
+      delta = delta,
+      y0 = y0,
+      d0 = d0,
+      summary = summary,
+      level = level,
+      ref = ref)
+
 }

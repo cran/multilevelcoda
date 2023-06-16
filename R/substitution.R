@@ -1,4 +1,4 @@
-#' @title Substitution Model.
+#' @title Multilevel Compositional Substitution Model.
 #' 
 #' @description 
 #' Estimate the difference in an outcome
@@ -12,30 +12,40 @@
 #' @param basesub A \code{data.frame} or \code{data.table} of the base possible substitution of compositional parts.
 #' This data set can be computed using function \code{\link{basesub}}. 
 #' If \code{NULL}, all possible pairwise substitution of compositional parts are used.
-#' @param regrid If non-\code{NULL}, a \code{data.table} of reference grid consisting 
+#' @param ref Either a character value or vector or a dataset.
+#' \code{ref} can be \code{grandmean} and/or \code{clustermean}, or
+#' a \code{data.frame} or \code{data.table} of user's specified reference grid consisting
 #' of combinations of covariates over which predictions are made.
-#' If \code{NULL}, the reference grid is constructed via \code{\link{ref_grid}}.
+#' User's specified reference grid only applicable to substitution model
+#' using a single reference composition value
+#' (e.g., \code{clustermean} or user's specified). Required.
 #' @param summary A logical value. 
 #' Should the estimate at each level of the reference grid (\code{FALSE}) 
-#' or their average (\code{TRUE}) be returned? Default to \code{TRUE}.
+#' or their average (\code{TRUE}) be returned? 
+#' Default to \code{TRUE}.
+#' Only applicable for model with covariates in addition to
+#' the isometric log-ratio coordinates (i.e., adjusted model).
 #' @param level A character string or vector. 
-#' Should the estimate be at the \code{between}-person and/or \code{within}-person level? Required.
-#' @param type A character string or vector. 
-#' Should the estimate be \code{conditional} mean or average \code{marginal} mean? Required.
+#' Should the estimate be at the \code{between} and/or \code{within} level? Required.
+#' @param weight A character value specifying the weight to use in calculation of the reference composition.
+#' \code{weight} can be \code{equal} which gives equal weight to units (e.g., individuals) or
+#' \code{proportional} which weights in proportion to the frequencies of units being averaged 
+#' (e.g., observations across individuals)
+#' Default to \code{equal}.
 #' @param ... Additional arguments to be passed to \code{\link{describe_posterior}}.
 #' 
-#' @return A list containing the result of multilevel compositional substitution model.
-#' Each element of the list is the estimation for a compositional part 
-#' and include at least six elements.
+#' @return A list containing the results of multilevel compositional substitution model.
+#' The first four lists contain the results of the substitution estimation for a compositional part. 
 #' \itemize{
 #'   \item{\code{Mean}}{ Posterior means.}
 #'   \item{\code{CI_low}} and \item{\code{CI_high}}{ 95% credible intervals.}
 #'   \item{\code{Delta}}{ Amount substituted across compositional parts.}
 #'   \item{\code{From}}{ Compositional part that is substituted from.}
 #'   \item{\code{To}}{ Compositional parts that is substituted to.}
-#'   \item{\code{Level}}{Level where changes in composition takes place. Either }
-#'   \item{\code{EffectType}}{Either estimated `conditional` or average `marginal` changes.}
+#'   \item{\code{Level}}{ Level where changes in composition takes place. Either }
+#'   \item{\code{Reference}}{ Either \code{grandmean}, \code{clustermean}, or \code{users}}
 #' }
+#' 
 #' @importFrom data.table as.data.table copy :=
 #' @importFrom compositions acomp ilr clo mean.acomp
 #' @importFrom extraoperators %snin% %sin%
@@ -45,6 +55,7 @@
 #' @export
 #' @examples
 #' \donttest{
+#' if(requireNamespace("cmdstanr")){
 #' data(mcompd)
 #' data(sbp)
 #' data(psub)
@@ -55,17 +66,21 @@
 #' m <- brmcoda(compilr = cilr, 
 #'              formula = STRESS ~ bilr1 + bilr2 + bilr3 + bilr4 + 
 #'                                 wilr1 + wilr2 + wilr3 + wilr4 + (1 | ID), 
-#'              chain = 1, iter = 500)
+#'              chain = 1, iter = 500, backend = "cmdstanr")
 #'              
-#' subm <- substitution(object = m, delta = c(1, 10),
-#'                      type = "conditional", level = c("between", "within"))
-#' }
-substitution <- function(object, delta, basesub = NULL,
-                         regrid = NULL, summary = TRUE, 
+#' subm <- substitution(object = m, delta = 5,
+#'                      ref = c("grandmean", "clustermean"), 
+#'                      level = c("between", "within"))
+#' }}
+substitution <- function(object,
+                         delta,
+                         basesub = NULL,
+                         summary = TRUE,
+                         ref = c("grandmean", "clustermean"),
                          level = c("between", "within"),
-                         type = c("conditional", "marginal"),
+                         weight = NULL,
                          ...) {
-
+  
   if (isTRUE(missing(object))) {
     stop(paste(
       "'object' is a required argument and cannot be missing;",
@@ -79,7 +94,7 @@ substitution <- function(object, delta, basesub = NULL,
       "Can't handle an object of class (%s) 
   It should be a fitted 'brmcoda' object
   See ?bsub for details.",
-      class(object)))
+  class(object)))
   }
   
   if(isFALSE(missing(delta))) {
@@ -95,21 +110,15 @@ substitution <- function(object, delta, basesub = NULL,
       "  to specify the change in units across compositional parts", 
       sep = "\n"))
   }
-  
-  if (isFALSE(is.null(regrid))) {
-    if(any(c(colnames(object$CompIlr$BetweenILR), colnames(object$CompIlr$WithinILR))
-           %in% c(colnames(regrid)))) {
-      stop(paste(
-        "'regrid' should not have any column names starting with 'bilr', 'wilr', or 'ilr'.",
-        "  These variables will be calculated by substitution model.",
-        "  Reference grid should contain information about the covariates used in 'brmcoda'.",
-        "  Please provide a different reference grid.",
-        sep = "\n"))
-    }
+  if (identical(weight, c("equal", "proportional"))) {
+    stop(paste(
+      "'weight' should be either equal of proportional",
+      "  If interested in both, please run two separate models.", 
+      sep = "\n"))
   }
   
-  if(isTRUE(missing(basesub))) {
-    count <- length(object$CompIlr$parts)
+  if (isTRUE(missing(basesub))) {
+    count <- length(object$CompILR$parts)
     n <- count - 2
     
     subvars1 <- c(1, -1)
@@ -122,61 +131,110 @@ substitution <- function(object, delta, basesub = NULL,
     basesub <- matrix(0, nrow = nr, ncol = nc, dimnames = list(NULL, object$CompILR$parts))
     k <- 0
     
-    for(i in 1:nc)
-      for(j in 1:nc)
-        if(i != j) {
+    for (i in 1:nc)
+      for (j in 1:nc)
+        if (i != j) {
           k <- k + 1
           basesub[k, c(i, j)] <- c(1, -1)
         }
     
     basesub <- as.data.table(basesub)
-    names(basesub) <- object$CompIlr$parts
-    } else if(isFALSE(missing(basesub))) {
-      
-      if (isFALSE(identical(ncol(basesub), length(object$CompIlr$parts)))) {
-        stop(sprintf(
+    names(basesub) <- object$CompILR$parts
+    
+  } else if(isFALSE(missing(basesub))) {
+    if (isFALSE(identical(ncol(basesub), length(object$CompILR$parts)))) {
+      stop(sprintf(
         "The number of columns in 'basesub' (%d) must be the same
         as the compositional parts in 'parts' (%d).",
         ncol(basesub),
-        length(object$CompIlr$parts)))
-        }
-      
-      if (isFALSE(identical(colnames(basesub), object$CompIlr$parts))) {
-        stop(sprintf(
+        length(object$CompILR$parts)))
+    }
+    if (isFALSE(identical(colnames(basesub), object$CompILR$parts))) {
+      stop(sprintf(
         "The names of compositional parts must be the
         same in 'basesub' (%s) and 'parts' (%s).",
         colnames(basesub),
-        object$CompIlr$parts))
-      }
-    }
-  
-  if ("between" %in% level) {
-    if("conditional" %in% type) {
-      bout <- bsub(object = object, basesub = basesub, delta = delta,
-                   regrid = regrid, summary = summary,
-                   level = "between", type = "conditional")
-    }
-    if("marginal" %in% type) {
-      bmout <- bsubmargins(object = object, basesub = basesub, delta = delta,
-                           level = "between", type = "marginal")
+        object$CompILR$parts))
     }
   }
   
-  if ("within" %in% level) {
-    if("conditional" %in% type) {
-      wout <- wsub(object = object, basesub = basesub, delta = delta,
-                   regrid = regrid, summary = summary,
-                   level = "within", type = "conditional")
+  if (isTRUE("between" %in% level)) {
+    if (isTRUE("grandmean" %in% ref)) {
+      bout <- bsub(
+        object = object,
+        delta = delta,
+        basesub = basesub,
+        summary = summary,
+        ref = "grandmean",
+        level = "between",
+        weight = weight)
+    } 
+    else if (isTRUE(inherits(ref, c("data.table", "data.frame", "matrix")))) {
+      bout <- bsub(
+        object = object,
+        delta = delta,
+        basesub = basesub,
+        summary = summary,
+        ref = ref,
+        level = "between",
+        weight = weight)
     }
-    if("marginal" %in% type) {
-      wmout <- wsubmargins(object = object, basesub = basesub, delta = delta,
-                           level = "within", type = "marginal")
+    if (isTRUE("clustermean" %in% ref)) {
+      bmout <-
+        bsubmargins(
+          object = object,
+          delta = delta,
+          basesub = basesub,
+          ref = "clustermean",
+          level = "between",
+          weight = weight)
     }
   }
   
-  out <- list(BetweenpersonSub = if(exists("bout")) (bout) else (NULL),
-              WithinpersonSub = if(exists("wout")) (wout) else (NULL),
-              BetweenpersonSubMargins = if(exists("bmout")) (bmout) else (NULL),
-              WithinpersonSubMargins = if(exists("wmout")) (wmout) else (NULL))
-  out
+  if (isTRUE("within" %in% level)) {
+    if (isTRUE("grandmean" %in% ref)) {
+      wout <- wsub(
+        object = object,
+        delta = delta,
+        basesub = basesub,
+        summary = summary,
+        ref = "grandmean",
+        level = "within",
+        weight = weight)
+    } 
+    else if (isTRUE(inherits(ref, c("data.table", "data.frame", "matrix")))) {
+      wout <- wsub(
+        object = object,
+        delta = delta,
+        basesub = basesub,
+        summary = summary,
+        ref = ref,
+        level = "within",
+        weight = weight)
+    }
+    if (isTRUE("clustermean" %in% ref)) {
+      wmout <-
+        wsubmargins(
+          object = object,
+          delta = delta,
+          basesub = basesub,
+          ref = "clustermean",
+          level = "within",
+          weight = weight)
+    }
+  }
+  
+  structure(
+    list(
+      BetweenSub = if(exists("bout")) (bout) else (NULL),
+      WithinSub = if(exists("wout")) (wout) else (NULL),
+      BetweenSubMargins = if(exists("bmout")) (bmout) else (NULL),
+      WithinSubMargins = if(exists("wmout")) (wmout) else (NULL),
+      delta = delta,
+      ref = ref,
+      level = level,
+      weight = weight,
+      parts = object$CompILR$parts,
+      summary = summary),
+    class = "substitution")
 }

@@ -2,7 +2,7 @@
 % Please edit documentation in R/submargins.R
 \name{submargins}
 \alias{submargins}
-\title{Average Marginal Substitution Model.}
+\title{Average Marginal Substitution.}
 \usage{
 submargins(object, delta, basesub, level = "total", type = "marginal", ...)
 }
@@ -33,8 +33,8 @@ and include at least six elements.
 \item{\code{Delta}}{ Amount substituted across compositional parts.}
 \item{\code{From}}{ Compositional part that is substituted from.}
 \item{\code{To}}{ Compositional parts that is substituted to.}
-\item{\code{Level}}{Level where changes in composition takes place.}
-\item{\code{EffectType}}{Either estimated \code{conditional} or average \code{marginal} changes.}
+\item{\code{Level}}{ Level where changes in composition takes place.}
+\item{\code{EffectType}}{ Either estimated \code{conditional} or average \code{marginal} changes.}
 }
 }
 \description{
@@ -45,7 +45,7 @@ the substitution results for all compositional parts
 present in the \code{\link{brmcoda}} object.
 }
 \examples{
-\donttest{
+\dontrun{
 data(mcompd)
 data(sbp)
 data(psub)
@@ -55,7 +55,9 @@ cilr <- compilr(data = mcompd, sbp = sbp,
 # model with compositional predictor
 m <- brmcoda(compilr = cilr, 
              formula = STRESS ~ ilr1 + ilr2 + ilr3 + ilr4 + (1 | ID), 
-             chain = 1, iter = 500)
+             chain = 1, iter = 500,
+             backend = "cmdstanr")
+             
 subm <- submargins(object = m, basesub = psub, delta = 5)
 }
 }

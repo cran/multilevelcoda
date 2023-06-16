@@ -10,16 +10,17 @@
 #' ILR coordinates, and other variables used in the model.
 #' @param ... Further arguments passed to \code{\link{brm}}.
 #' 
-#' @return A list with two elements
+#' @return A \code{\link{brmcoda}} with two elements
 #' \itemize{
-#'   \item{\code{CompIlr}}{ An object of class \code{compilr} used in the \code{brm} model. }
+#'   \item{\code{CompILR}}{ An object of class \code{compilr} used in the \code{brm} model. }
 #'   \item{\code{Model}}{ An object of class \code{brmsfit}, which contains the posterior draws 
 #'   along with many other useful information about the model.}
 #'   }
 #' @importFrom brms brm
 #' @export
 #' @examples
-#' \donttest{
+#' \dontrun{
+#' if(requireNamespace("cmdstanr")){
 #' data(mcompd)
 #' data(sbp)
 #' cilr <- compilr(data = mcompd, sbp = sbp, 
@@ -32,16 +33,18 @@
 #' 
 #' # model with compositional predictor at between and within-person levels
 #' m1 <- brmcoda(compilr = cilr, 
-#'  formula = STRESS ~ bilr1 + bilr2 + bilr3 + bilr4 +
-#'  wilr1 + wilr2 + wilr3 + wilr4 + (1 | ID), 
-#'              chain = 1, iter = 500)
-#'
+#'               formula = STRESS ~ bilr1 + bilr2 + bilr3 + bilr4 +
+#'                                  wilr1 + wilr2 + wilr3 + wilr4 + (1 | ID), 
+#'               chain = 1, iter = 500,
+#'               backend = "cmdstanr")
+#'              
 #' # model with compositional outcome  
 #' m2 <- brmcoda(compilr = cilr, 
-#'  formula = mvbind(ilr1, ilr2, ilr3, ilr4) ~ STRESS + Female + (1 | ID),
-#'  chain = 1, iter = 500) 
-#'                
-#' }
+#'               formula = mvbind(ilr1, ilr2, ilr3, ilr4) ~ STRESS + Female + (1 | ID),
+#'               chain = 1, iter = 500,
+#'               backend = "cmdstanr")
+#'              
+#' }} 
 brmcoda <- function (compilr, formula, ...) {
 
   if (isTRUE(missing(compilr))) {
@@ -57,6 +60,7 @@ brmcoda <- function (compilr, formula, ...) {
       "  See ?multilevelcoda::compilr for details.",
       sep = "\n"))
   }
+  
   tmp <- cbind(compilr$data, compilr$BetweenILR, 
                compilr$WithinILR, compilr$TotalILR)
   
@@ -64,9 +68,8 @@ brmcoda <- function (compilr, formula, ...) {
            data = tmp,
            ...)
   
-  out <- structure(
-    list(CompIlr = compilr,
+  structure(
+    list(CompILR = compilr,
          Model = m),
     class = "brmcoda")
-  out
 }
