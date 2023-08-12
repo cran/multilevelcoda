@@ -26,11 +26,11 @@
 # data(psub)
 # 
 # cilr <- compilr(data = mcompd[ID %in% 1:200, .SD[1:5], by = ID], sbp = sbp,
-#                 parts = c("TST", "WAKE", "MVPA", "LPA", "SB"), idvar = "ID")
+#                 parts = c("TST", "WAKE", "MVPA", "LPA", "SB"), idvar = "ID", total = 1440)
 # 
 # suppressWarnings(
 #   m <- brmcoda(compilr = cilr,
-#                formula = STRESS ~ bilr1 + bilr2 + bilr3 + bilr4 +
+#                formula = Stress ~ bilr1 + bilr2 + bilr3 + bilr4 +
 #                  wilr1 + wilr2 + wilr3 + wilr4 + Female + (1 | ID),
 #                chain = 1, iter = 500, seed = 123,
 #                backend = backend))
@@ -50,7 +50,7 @@
 # #   expect_error(x <- wsubmargins(object = m, delta = 2))
 # # 
 # #   ## not brmcoda model
-# #   m1 <- lmer(STRESS ~ 1 + (1 | ID), data = mcompd)
+# #   m1 <- lmer(Stress ~ 1 + (1 | ID), data = mcompd)
 # #   expect_error(x <- wsubmargins(object = m1, basesub = psub, delta = 2))
 # # 
 # #   ## invalid delta
@@ -188,11 +188,11 @@
 #   
 #   sbp <- as.matrix(data.table(1, -1))
 #   cilr <- compilr(data = mcompd[ID %in% 1:10, .SD[1:3], by = ID], sbp = sbp,
-#                   parts = c("TST", "WAKE"), idvar = "ID")
+#                   parts = c("TST", "WAKE"), idvar = "ID", total = 1440)
 #   psub <- basesub(c("TST", "WAKE"))
 #   suppressWarnings(
 #     m <- brmcoda(compilr = cilr,
-#                  formula = STRESS ~ bilr1 + wilr1 + (1 | ID),
+#                  formula = Stress ~ bilr1 + wilr1 + (1 | ID),
 #                  chain = 1, iter = 500, seed = 123,
 #                  backend = backend))
 #   a <- wsubmargins(object = m, basesub = psub, delta = 1:2)
@@ -219,11 +219,11 @@
 #   
 #   sbp <- as.matrix(data.table(1, -1))
 #   cilr <- compilr(data = mcompd[ID %in% 1:10, .SD[1:3], by = ID], sbp = sbp,
-#                   parts = c("TST", "MVPA"), idvar = "ID")
+#                   parts = c("TST", "MVPA"), idvar = "ID", total = 1440)
 #   psub <- basesub(c("TST", "MVPA"))
 #   suppressWarnings(
 #     m <- brmcoda(compilr = cilr,
-#                  formula = STRESS ~ bilr1 + wilr1 + (1 | ID),
+#                  formula = Stress ~ bilr1 + wilr1 + (1 | ID),
 #                  chain = 1, iter = 500, seed = 123,
 #                  backend = backend))
 #   b <- wsubmargins(object = m, basesub = psub, delta = 1:2)
@@ -250,11 +250,11 @@
 #   
 #   sbp <- as.matrix(data.table(1, -1))
 #   cilr <- compilr(data = mcompd[ID %in% 1:10, .SD[1:3], by = ID], sbp = sbp,
-#                   parts = c("TST", "LPA"), idvar = "ID")
+#                   parts = c("TST", "LPA"), idvar = "ID", total = 1440)
 #   psub <- basesub(c("TST", "LPA"))
 #   suppressWarnings(
 #     m <- brmcoda(compilr = cilr,
-#                  formula = STRESS ~ bilr1 + wilr1 + (1 | ID),
+#                  formula = Stress ~ bilr1 + wilr1 + (1 | ID),
 #                  chain = 1, iter = 500, seed = 123,
 #                  backend = backend))
 #   c <- wsubmargins(object = m, basesub = psub, delta = 1:2)
@@ -281,11 +281,11 @@
 #   
 #   sbp <- as.matrix(data.table(1, -1))
 #   cilr <- compilr(data = mcompd[ID %in% 1:10, .SD[1:3], by = ID], sbp = sbp,
-#                   parts = c("TST", "SB"), idvar = "ID")
+#                   parts = c("TST", "SB"), idvar = "ID", total = 1440)
 #   psub <- basesub(c("TST", "SB"))
 #   suppressWarnings(
 #     m <- brmcoda(compilr = cilr,
-#                  formula = STRESS ~ bilr1 + wilr1 + (1 | ID),
+#                  formula = Stress ~ bilr1 + wilr1 + (1 | ID),
 #                  chain = 1, iter = 500, seed = 123,
 #                  backend = backend))
 #   d <- wsubmargins(object = m, basesub = psub, delta = 1:2)
@@ -312,12 +312,12 @@
 #   
 #   sbp <- as.matrix(data.table(1, -1))
 #   cilr <- compilr(data = mcompd[ID %in% 1:10, .SD[1:3], by = ID], sbp = sbp,
-#                   parts = c("WAKE", "MVPA"), idvar = "ID")
+#                   parts = c("WAKE", "MVPA"), idvar = "ID", total = 1440)
 #   psub <- basesub(c("WAKE", "MVPA"))
 #   
 #   suppressWarnings(
 #     m <- brmcoda(compilr = cilr,
-#                  formula = STRESS ~ bilr1 + wilr1 + (1 | ID),
+#                  formula = Stress ~ bilr1 + wilr1 + (1 | ID),
 #                  chain = 1, iter = 500, seed = 123,
 #                  backend = backend))
 #   e <- wsubmargins(object = m, basesub = psub, delta = 1:2)
@@ -344,11 +344,11 @@
 #   
 #   sbp <- as.matrix(data.table(1, -1))
 #   cilr <- compilr(data = mcompd[ID %in% 1:10, .SD[1:3], by = ID], sbp = sbp,
-#                   parts = c("WAKE", "LPA"), idvar = "ID")
+#                   parts = c("WAKE", "LPA"), idvar = "ID", total = 1440)
 #   psub <- basesub(c("WAKE", "LPA"))
 #   suppressWarnings(
 #     m <- brmcoda(compilr = cilr,
-#                  formula = STRESS ~ bilr1 + wilr1 + (1 | ID),
+#                  formula = Stress ~ bilr1 + wilr1 + (1 | ID),
 #                  chain = 1, iter = 500, seed = 123,
 #                  backend = backend))
 #   f <- wsubmargins(object = m, basesub = psub, delta = 1:2)
@@ -375,11 +375,11 @@
 #   
 #   sbp <- as.matrix(data.table(1, -1))
 #   cilr <- compilr(data = mcompd[ID %in% 1:10, .SD[1:3], by = ID], sbp = sbp,
-#                   parts = c("WAKE", "SB"), idvar = "ID")
+#                   parts = c("WAKE", "SB"), idvar = "ID", total = 1440)
 #   psub <- basesub(c("WAKE", "SB"))
 #   suppressWarnings(
 #     m <- brmcoda(compilr = cilr,
-#                  formula = STRESS ~ bilr1 + wilr1 + (1 | ID),
+#                  formula = Stress ~ bilr1 + wilr1 + (1 | ID),
 #                  chain = 1, iter = 500, seed = 123,
 #                  backend = backend))
 #   g <- wsubmargins(object = m, basesub = psub, delta = 1:2)
@@ -406,11 +406,11 @@
 #   
 #   sbp <- as.matrix(data.table(1, -1))
 #   cilr <- compilr(data = mcompd[ID %in% 1:10, .SD[1:3], by = ID], sbp = sbp,
-#                   parts = c("MVPA", "LPA"), idvar = "ID")
+#                   parts = c("MVPA", "LPA"), idvar = "ID", total = 1440)
 #   psub <- basesub(c("MVPA", "LPA"))
 #   suppressWarnings(
 #     m <- brmcoda(compilr = cilr,
-#                  formula = STRESS ~ bilr1 + wilr1 + (1 | ID),
+#                  formula = Stress ~ bilr1 + wilr1 + (1 | ID),
 #                  chain = 1, iter = 500, seed = 123,
 #                  backend = backend))
 #   h <- wsubmargins(object = m, basesub = psub, delta = 1:2)
@@ -437,11 +437,11 @@
 #   
 #   sbp <- as.matrix(data.table(1, -1))
 #   cilr <- compilr(data = mcompd[ID %in% 1:10, .SD[1:3], by = ID], sbp = sbp,
-#                   parts = c("MVPA", "SB"), idvar = "ID")
+#                   parts = c("MVPA", "SB"), idvar = "ID", total = 1440)
 #   psub <- basesub(c("MVPA", "SB"))
 #   suppressWarnings(
 #     m <- brmcoda(compilr = cilr,
-#                  formula = STRESS ~ bilr1 + wilr1 + (1 | ID),
+#                  formula = Stress ~ bilr1 + wilr1 + (1 | ID),
 #                  chain = 1, iter = 500, seed = 123,
 #                  backend = backend))
 #   i <- wsubmargins(object = m, basesub = psub, delta = 1:2)
@@ -468,11 +468,11 @@
 #   
 #   sbp <- as.matrix(data.table(1, -1))
 #   cilr <- compilr(data = mcompd[ID %in% 1:10, .SD[1:3], by = ID], sbp = sbp,
-#                   parts = c("LPA", "SB"), idvar = "ID")
+#                   parts = c("LPA", "SB"), idvar = "ID", total = 1440)
 #   psub <- basesub(c("LPA", "SB"))
 #   suppressWarnings(
 #     m <- brmcoda(compilr = cilr,
-#                  formula = STRESS ~ bilr1 + wilr1 + (1 | ID),
+#                  formula = Stress ~ bilr1 + wilr1 + (1 | ID),
 #                  chain = 1, iter = 500, seed = 123,
 #                  backend = backend))
 #   j <- wsubmargins(object = m, basesub = psub, delta = 1:2)

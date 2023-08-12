@@ -7,7 +7,7 @@
 \method{update}{brmcoda}(object, formula. = NULL, newdata = NULL, newcilr = NULL, ...)
 }
 \arguments{
-\item{object}{A fitted \code{\link{brmcoda}} object to be updated. Required.}
+\item{object}{A fitted \code{\link{brmcoda}} object to be updated.}
 
 \item{formula.}{Changes to the formula; for details see \code{\link{update.formula}} and \code{\link{brmsformula}}.}
 
@@ -23,7 +23,7 @@ ILR coordinates, and other variables used in the updated model.}
 \value{
 A \code{\link{brmcoda}} with two elements
 \itemize{
-\item{\code{CompIlr}}{ An object of class \code{compilr} used in the \code{brm} model. }
+\item{\code{CompILR}}{ An object of class \code{compilr} used in the \code{brm} model. }
 \item{\code{Model}}{ An object of class \code{brmsfit}, which contains the posterior draws
 along with many other useful information about the model.}
 }
@@ -34,14 +34,13 @@ This method allows for updating an existing \code{\link{brmcoda}} object.
 \examples{
 \donttest{
 if(requireNamespace("cmdstanr")){
-data(mcompd)
-data(sbp)
-cilr <- compilr(data = mcompd, sbp = sbp, 
-        parts = c("TST", "WAKE", "MVPA", "LPA", "SB"), idvar = "ID")
 
 # model with compositional predictor at between and within-person levels
-fit <- brmcoda(compilr = cilr, 
-              formula = STRESS ~ bilr1 + bilr2 + bilr3 + bilr4 +
+fit <- brmcoda(compilr = compilr(data = mcompd, sbp = sbp, 
+                                 parts = c("TST", "WAKE", "MVPA", "LPA", "SB"), 
+                                 idvar = "ID"
+                                 ), 
+              formula = Stress ~ bilr1 + bilr2 + bilr3 + bilr4 +
                                  wilr1 + wilr2 + wilr3 + wilr4 + (1 | ID), 
               chain = 1, iter = 500,
               backend = "cmdstanr")
@@ -52,4 +51,7 @@ fit1 <- update(fit, formula. = ~ . - wilr1)
 # using only a subset
 fit2 <- update(fit, newdata = mcompd[ID != 1])
 }}
+}
+\seealso{
+\code{\link{brmcoda}}
 }

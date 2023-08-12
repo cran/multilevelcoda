@@ -3,7 +3,7 @@
 # multilevelcoda
 <!-- badges: start -->
 [![R-CMD-check](https://github.com/florale/multilevelcoda/workflows/R-CMD-check/badge.svg)](https://github.com/florale/multilevelcoda/actions)
-[![Coverage Status](https://codecov.io/gh/florale/multilevelcoda/branch/main/graphs/badge.svg?branch=main)](https://app.codecov.io/gh/florale/multilevelcoda)
+<!-- [![Coverage Status](https://codecov.io/gh/florale/multilevelcoda/branch/main/graphs/badge.svg?branch=main)](https://app.codecov.io/gh/florale/multilevelcoda)  -->
 [![CRAN Version](https://www.r-pkg.org/badges/version/multilevelcoda)](https://cran.r-project.org/package=multilevelcoda)
 [![lifecycle](https://lifecycle.r-lib.org/articles/figures/lifecycle-experimental.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
 <!-- badges: end -->
@@ -34,17 +34,17 @@ if (!requireNamespace("remotes")) {
 remotes::install_github("florale/multilevelcoda")
 ```
 
-Because `multilevelcoda` is built on brms, which is based on Stan, a C++ compiler is required. 
+Because `multilevelcoda` is built on `brms`, which is based on Stan, a C++ compiler is required. 
 The program Rtools (available on https://cran.r-project.org/bin/windows/Rtools/) comes with a C++ compiler for Windows. On Mac, Xcode is required. For further instructions on how to get the compilers running, see the prerequisites section on https://github.com/stan-dev/rstan/wiki/RStan-Getting-Started.
 
 ## Resources
 
 You can learn about the package from these vignettes:
 
-- [Introduction to Compositional Multilevel Modelling](https://florale.github.io/multilevelcoda/articles/introduction.html)
-- [Multilevel Models with Compositional Outcomes](https://florale.github.io/multilevelcoda/articles/comp-outcome.html)
-- [Multilevel Models with Compositional Predictors](https://florale.github.io/multilevelcoda/articles/comp-predictor.html)
-- [Compositional Multilevel Substitution Models](https://florale.github.io/multilevelcoda/articles/substitution-model.html)
+- [Introduction to Compositional Multilevel Modelling](https://florale.github.io/multilevelcoda/articles/A-introduction.html)
+- [Multilevel Models with Compositional Predictors](https://florale.github.io/multilevelcoda/articles/B-composition-MLM.html)
+- [Multilevel Models with Compositional Outcome](https://florale.github.io/multilevelcoda/articles/C-composition-MMLM.html)
+- [Compositional Multilevel Substitution Models](https://florale.github.io/multilevelcoda/articles/D-substitution-model.html)
 
 ## Citing `multilevelcoda` and related software 
 TBA

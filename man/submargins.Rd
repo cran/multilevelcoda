@@ -2,12 +2,12 @@
 % Please edit documentation in R/submargins.R
 \name{submargins}
 \alias{submargins}
-\title{Average Marginal Substitution.}
+\title{Average Marginal Substitution}
 \usage{
 submargins(object, delta, basesub, level = "total", type = "marginal", ...)
 }
 \arguments{
-\item{object}{A fitted \code{\link{brmcoda}} object. Required.}
+\item{object}{A fitted \code{\link{brmcoda}} object.}
 
 \item{delta}{A integer, numeric value or vector indicating the amount of substituted change between compositional parts.}
 
@@ -15,11 +15,10 @@ submargins(object, delta, basesub, level = "total", type = "marginal", ...)
 This data set can be computed using function \code{\link{basesub}}.
 If \code{NULL}, all possible pairwise substitution of compositional parts are used.}
 
-\item{level}{A character string or vector.
-Should the estimate be at the \code{between}-person and/or \code{within}-person level? Required.}
+\item{level}{A character string or vector. Default to \code{total}.}
 
 \item{type}{A character string or vector.
-Should the estimate be \code{conditional} mean or average \code{marginal} mean? Required.}
+Should the estimate be \code{conditional} mean or average \code{marginal} mean?}
 
 \item{...}{Additional arguments to be passed to \code{\link{describe_posterior}}.}
 }
@@ -29,7 +28,7 @@ Each element of the list is the estimation for a compositional part
 and include at least six elements.
 \itemize{
 \item{\code{Mean}}{ Posterior means.}
-\item{\code{CI_low}} and \item{\code{CI_high}}{ 95\% credible intervals.}
+\item{\code{CI_low} and \code{CI_high}}{ 95\% credible intervals.}
 \item{\code{Delta}}{ Amount substituted across compositional parts.}
 \item{\code{From}}{ Compositional part that is substituted from.}
 \item{\code{To}}{ Compositional parts that is substituted to.}
@@ -43,21 +42,4 @@ when compositional parts are substituted for specific unit(s).
 The \code{submargins} output encapsulates
 the substitution results for all compositional parts
 present in the \code{\link{brmcoda}} object.
-}
-\examples{
-\dontrun{
-data(mcompd)
-data(sbp)
-data(psub)
-cilr <- compilr(data = mcompd, sbp = sbp, 
-                parts = c("TST", "WAKE", "MVPA", "LPA", "SB"), idvar = "ID")
-
-# model with compositional predictor
-m <- brmcoda(compilr = cilr, 
-             formula = STRESS ~ ilr1 + ilr2 + ilr3 + ilr4 + (1 | ID), 
-             chain = 1, iter = 500,
-             backend = "cmdstanr")
-             
-subm <- submargins(object = m, basesub = psub, delta = 5)
-}
 }

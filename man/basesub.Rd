@@ -13,18 +13,13 @@ basesub(parts)
 A data table of all possible pairwise substitution.
 }
 \description{
-Makes a data set of all possible pairwise substitution of a composition which can be used as
+Make a data set of all possible pairwise substitution of a composition which can be used as
 the base for substitution models.
 }
 \examples{
+ps1 <- basesub(parts = c("TST", "WAKE", "MVPA", "LPA", "SB"))
+print(ps1)
 
-data(mcompd)
-
-ps <- basesub(parts = c("TST", "WAKE", "MVPA", "LPA", "SB"))
 ps2 <- basesub(c("WAKE", "MVPA", "LPA", "SB"))
-
 print(ps2)
-
-## cleanup
-rm(mcompd, ps1, ps2)
 }

@@ -1,84 +1,74 @@
-#' @title Multilevel Compositional Substitution Model.
+#' Multilevel Compositional Substitution Model
 #' 
-#' @description 
 #' Estimate the difference in an outcome
 #' when compositional parts are substituted for specific unit(s). 
 #' The \code{substitution} output encapsulates
 #' the substitution results for all compositional parts
 #' present in the \code{\link{brmcoda}} object.
 #' 
-#' @param object A fitted \code{\link{brmcoda}} object. Required.
+#' @param object A fitted \code{\link{brmcoda}} object.
 #' @param delta A integer, numeric value or vector indicating the amount of substituted change between compositional parts.
 #' @param basesub A \code{data.frame} or \code{data.table} of the base possible substitution of compositional parts.
 #' This data set can be computed using function \code{\link{basesub}}. 
 #' If \code{NULL}, all possible pairwise substitution of compositional parts are used.
 #' @param ref Either a character value or vector or a dataset.
-#' \code{ref} can be \code{grandmean} and/or \code{clustermean}, or
+#' Can be \code{"grandmean"} and/or \code{"clustermean"}, or
 #' a \code{data.frame} or \code{data.table} of user's specified reference grid consisting
 #' of combinations of covariates over which predictions are made.
-#' User's specified reference grid only applicable to substitution model
-#' using a single reference composition value
-#' (e.g., \code{clustermean} or user's specified). Required.
+#' User's specified reference grid is only possible for simple substitution. 
 #' @param summary A logical value. 
 #' Should the estimate at each level of the reference grid (\code{FALSE}) 
 #' or their average (\code{TRUE}) be returned? 
-#' Default to \code{TRUE}.
+#' Default is \code{TRUE}.
 #' Only applicable for model with covariates in addition to
 #' the isometric log-ratio coordinates (i.e., adjusted model).
 #' @param level A character string or vector. 
-#' Should the estimate be at the \code{between} and/or \code{within} level? Required.
+#' Should the estimate be at the \code{"between"} and/or \code{"within"} level?
 #' @param weight A character value specifying the weight to use in calculation of the reference composition.
-#' \code{weight} can be \code{equal} which gives equal weight to units (e.g., individuals) or
-#' \code{proportional} which weights in proportion to the frequencies of units being averaged 
+#' If \code{"equal"}, give equal weight to units (e.g., individuals).
+#' If \code{"proportional"}, weights in proportion to the frequencies of units being averaged 
 #' (e.g., observations across individuals)
-#' Default to \code{equal}.
-#' @param ... Additional arguments to be passed to \code{\link{describe_posterior}}.
+#' Default is \code{equal}.
+#' @param ... Additional arguments passed to \code{\link{describe_posterior}}.
 #' 
 #' @return A list containing the results of multilevel compositional substitution model.
 #' The first four lists contain the results of the substitution estimation for a compositional part. 
 #' \itemize{
 #'   \item{\code{Mean}}{ Posterior means.}
-#'   \item{\code{CI_low}} and \item{\code{CI_high}}{ 95% credible intervals.}
+#'   \item{\code{CI_low} and \code{CI_high}}{ 95% credible intervals.}
 #'   \item{\code{Delta}}{ Amount substituted across compositional parts.}
 #'   \item{\code{From}}{ Compositional part that is substituted from.}
 #'   \item{\code{To}}{ Compositional parts that is substituted to.}
-#'   \item{\code{Level}}{ Level where changes in composition takes place. Either }
-#'   \item{\code{Reference}}{ Either \code{grandmean}, \code{clustermean}, or \code{users}}
+#'   \item{\code{Level}}{ Level where changes in composition takes place. Either \code{between} or \code{within}.}
+#'   \item{\code{Reference}}{ Either \code{grandmean}, \code{clustermean}, or \code{users}.}
 #' }
 #' 
 #' @importFrom data.table as.data.table copy :=
 #' @importFrom compositions acomp ilr clo mean.acomp
-#' @importFrom extraoperators %snin% %sin%
-#' @importFrom insight find_predictors
-#' @importFrom emmeans ref_grid
-#' @importFrom stats fitted
-#' @export
+#' 
 #' @examples
 #' \donttest{
 #' if(requireNamespace("cmdstanr")){
-#' data(mcompd)
-#' data(sbp)
-#' data(psub)
-#' cilr <- compilr(data = mcompd, sbp = sbp, 
-#'                 parts = c("TST", "WAKE", "MVPA", "LPA", "SB"), idvar = "ID")
-#' 
-#' # model with compositional predictor at between and between-person levels
-#' m <- brmcoda(compilr = cilr, 
-#'              formula = STRESS ~ bilr1 + bilr2 + bilr3 + bilr4 + 
-#'                                 wilr1 + wilr2 + wilr3 + wilr4 + (1 | ID), 
-#'              chain = 1, iter = 500, backend = "cmdstanr")
-#'              
-#' subm <- substitution(object = m, delta = 5,
-#'                      ref = c("grandmean", "clustermean"), 
-#'                      level = c("between", "within"))
+#'   cilr <- compilr(data = mcompd, sbp = sbp,
+#'                   parts = c("TST", "WAKE", "MVPA", "LPA", "SB"),
+#'                   idvar = "ID", total = 1440)
+#'   
+#'   # model with compositional predictor at between and between-person levels
+#'   m <- brmcoda(compilr = cilr,
+#'                formula = Stress ~ bilr1 + bilr2 + bilr3 + bilr4 +
+#'                  wilr1 + wilr2 + wilr3 + wilr4 + (1 | ID),
+#'                chain = 1, iter = 500, backend = "cmdstanr")
+#'   
+#'   subm <- substitution(object = m, delta = 5)
 #' }}
+#' @export
 substitution <- function(object,
                          delta,
                          basesub = NULL,
                          summary = TRUE,
                          ref = c("grandmean", "clustermean"),
                          level = c("between", "within"),
-                         weight = NULL,
+                         weight = c("equal", "proportional"),
                          ...) {
   
   if (isTRUE(missing(object))) {
@@ -110,11 +100,10 @@ substitution <- function(object,
       "  to specify the change in units across compositional parts", 
       sep = "\n"))
   }
-  if (identical(weight, c("equal", "proportional"))) {
-    stop(paste(
-      "'weight' should be either equal of proportional",
-      "  If interested in both, please run two separate models.", 
-      sep = "\n"))
+  if (identical(weight, "proportional")) {
+    weight <- "proportional"
+  } else {
+    weight <- "equal"
   }
   
   if (isTRUE(missing(basesub))) {

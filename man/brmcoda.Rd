@@ -3,7 +3,7 @@
 \name{brmcoda}
 \alias{brmcoda}
 \title{Fit Bayesian generalised (non-)linear multilevel compositional model
-via full Bayesian inference using brms,}
+via full Bayesian inference}
 \usage{
 brmcoda(compilr, formula, ...)
 }
@@ -26,33 +26,30 @@ along with many other useful information about the model.}
 }
 }
 \description{
-This function fits a \code{brm} model with multilevel ILR coordinates.
+Fit a \code{brm} model with multilevel ILR coordinates
 }
 \examples{
-\dontrun{
+\donttest{
 if(requireNamespace("cmdstanr")){
-data(mcompd)
-data(sbp)
-cilr <- compilr(data = mcompd, sbp = sbp, 
-        parts = c("TST", "WAKE", "MVPA", "LPA", "SB"), idvar = "ID")
-
-# inspects ILRs before passing to brmcoda
-names(cilr$BetweenILR)
-names(cilr$WithinILR)
-names(cilr$TotalILR)
-
-# model with compositional predictor at between and within-person levels
-m1 <- brmcoda(compilr = cilr, 
-              formula = STRESS ~ bilr1 + bilr2 + bilr3 + bilr4 +
-                                 wilr1 + wilr2 + wilr3 + wilr4 + (1 | ID), 
-              chain = 1, iter = 500,
-              backend = "cmdstanr")
-             
-# model with compositional outcome  
-m2 <- brmcoda(compilr = cilr, 
-              formula = mvbind(ilr1, ilr2, ilr3, ilr4) ~ STRESS + Female + (1 | ID),
-              chain = 1, iter = 500,
-              backend = "cmdstanr")
-             
-}} 
+  cilr <- compilr(data = mcompd, sbp = sbp,
+                  parts = c("TST", "WAKE", "MVPA", "LPA", "SB"), idvar = "ID")
+  
+  # inspects ILRs before passing to brmcoda
+  names(cilr$BetweenILR)
+  names(cilr$WithinILR)
+  names(cilr$TotalILR)
+  
+  # model with compositional predictor at between and within-person levels
+  m1 <- brmcoda(compilr = cilr,
+                formula = Stress ~ bilr1 + bilr2 + bilr3 + bilr4 +
+                  wilr1 + wilr2 + wilr3 + wilr4 + (1 | ID),
+                chain = 1, iter = 500,
+                backend = "cmdstanr")
+  
+  # model with compositional outcome
+  m2 <- brmcoda(compilr = cilr,
+                formula = mvbind(ilr1, ilr2, ilr3, ilr4) ~ Stress + Female + (1 | ID),
+                chain = 1, iter = 500,
+                backend = "cmdstanr")
+  }}
 }

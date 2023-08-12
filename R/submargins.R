@@ -1,21 +1,19 @@
-#' @title Average Marginal Substitution.
+#' Average Marginal Substitution
 #'
-#' @description
 #' Using a fitted model object, estimates the the average marginal difference 
 #' when compositional parts are substituted for specific unit(s). 
 #' The \code{submargins} output encapsulates 
 #' the substitution results for all compositional parts
 #' present in the \code{\link{brmcoda}} object.
 #'
-#' @param object A fitted \code{\link{brmcoda}} object. Required.
+#' @param object A fitted \code{\link{brmcoda}} object.
 #' @param delta A integer, numeric value or vector indicating the amount of substituted change between compositional parts.
 #' @param basesub A \code{data.frame} or \code{data.table} of the base possible substitution of compositional parts.
 #' This data set can be computed using function \code{\link{basesub}}. 
 #' If \code{NULL}, all possible pairwise substitution of compositional parts are used.
-#' @param level A character string or vector. 
-#' Should the estimate be at the \code{between}-person and/or \code{within}-person level? Required.
+#' @param level A character string or vector. Default to \code{total}. 
 #' @param type A character string or vector. 
-#' Should the estimate be \code{conditional} mean or average \code{marginal} mean? Required.
+#' Should the estimate be \code{conditional} mean or average \code{marginal} mean?
 #' @param ... Additional arguments to be passed to \code{\link{describe_posterior}}.
 #' 
 #' @return A list containing the result of multilevel compositional substitution model.
@@ -23,7 +21,7 @@
 #' and include at least six elements.
 #' \itemize{
 #'   \item{\code{Mean}}{ Posterior means.}
-#'   \item{\code{CI_low}} and \item{\code{CI_high}}{ 95% credible intervals.}
+#'   \item{\code{CI_low} and \code{CI_high}}{ 95% credible intervals.}
 #'   \item{\code{Delta}}{ Amount substituted across compositional parts.}
 #'   \item{\code{From}}{ Compositional part that is substituted from.}
 #'   \item{\code{To}}{ Compositional parts that is substituted to.}
@@ -33,24 +31,6 @@
 #'
 #' @importFrom data.table as.data.table copy :=
 #' @importFrom compositions acomp ilr clo
-#' @importFrom stats fitted
-#' @export
-#' @examples
-#' \dontrun{
-#' data(mcompd)
-#' data(sbp)
-#' data(psub)
-#' cilr <- compilr(data = mcompd, sbp = sbp, 
-#'                 parts = c("TST", "WAKE", "MVPA", "LPA", "SB"), idvar = "ID")
-#' 
-#' # model with compositional predictor
-#' m <- brmcoda(compilr = cilr, 
-#'              formula = STRESS ~ ilr1 + ilr2 + ilr3 + ilr4 + (1 | ID), 
-#'              chain = 1, iter = 500,
-#'              backend = "cmdstanr")
-#'              
-#' subm <- submargins(object = m, basesub = psub, delta = 5)
-#' }
 submargins <- function(object,
                        delta,
                        basesub,

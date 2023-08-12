@@ -2,17 +2,18 @@
 #'
 #' A simulated dataset containing multiple days of compositional data.
 #'
-#' @format A data table containing 9 variables.
+#' @format A data table containing 10 variables.
 #' \describe{
+#'   \item{ID}{A unique identifier for each individual}
+#'   \item{Time}{Recurrence time of repeated measures by individual}
+#'   \item{Stress}{Self report stress measures on a 0 to 10 scale --- repeated measure}
 #'   \item{TST}{Total Sleep Time (minutes) --- repeated measure}
 #'   \item{WAKE}{Wake time while in bed, trying to sleep (minutes) --- repeated measure}
 #'   \item{MVPA}{Moderate to Vigorous Physical Activity (minutes) --- repeated measure}
 #'   \item{LPA}{Light Physical Activity (minutes) --- repeated measure}
 #'   \item{SB}{Sedentary Behavior (minutes) --- repeated measure}
-#'   \item{ID}{A unique identifier for each individual}
 #'   \item{Age}{Age in years --- baseline measure only}
 #'   \item{Female}{Binary: whether participants identified as female (1) or not (0) --- baseline measure only}
-#'   \item{STRESS}{Self report stress measures on a 0 to 10 scale --- repeated measure}
 #' }
 "mcompd"
 
@@ -22,11 +23,11 @@
 #'
 #' @format A data table containing 5 variables.
 #' \describe{
-#'   \item{V1}{first compositional variable}
-#'   \item{V2}{second compositional variable}
-#'   \item{V3}{third compositional variable}
-#'   \item{V4}{fourth compositional variable}
-#'   \item{V5}{fifth compositional variable}
+#'   \item{TST}{first compositional variable}
+#'   \item{WAKE}{second compositional variable}
+#'   \item{MVPA}{third compositional variable}
+#'   \item{LPA}{fourth compositional variable}
+#'   \item{SB}{fifth compositional variable}
 #' }
 "psub"
 
@@ -36,10 +37,10 @@
 #'
 #' @format A matrix with 5 columns and 4 rows.
 #' \describe{
-#'   \item{V1}{first compositional variable}
-#'   \item{V2}{second compositional variable}
-#'   \item{V3}{third compositional variable}
-#'   \item{V4}{fourth compositional variable}
-#'   \item{V5}{fifth compositional variable}
+#'   \item{TST}{first compositional variable}
+#'   \item{WAKE}{second compositional variable}
+#'   \item{MVPA}{third compositional variable}
+#'   \item{LPA}{fourth compositional variable}
+#'   \item{SB}{fifth compositional variable}
 #' }
 "sbp"

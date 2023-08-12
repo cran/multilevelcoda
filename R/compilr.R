@@ -1,6 +1,6 @@
-#' Compute useful indices from a (dataset of) multilevel composition(s)
+#' Indices from a (dataset of) Multilevel Composition(s)
 #'
-#' Computes sets of compositions and IRLs for Multilevel Compositional Data models. 
+#' Compute sets of compositions and IRLs for multilevel compositional data
 #'
 #' @param data A \code{data.frame} or \code{data.table}
 #' containing data of all variables used in the analysis. 
@@ -8,9 +8,9 @@
 #' @param sbp A signary matrix indicating sequential binary partition. Required.
 #' @param parts A character vector specifying the names of compositional variables to be used.
 #' @param idvar A character string specifying the name of the variable containing IDs. 
-#' Default to \code{ID}.
+#' Default is \code{"ID"}.
 #' @param total A numeric value of the total amount to which the compositions should be closed.
-#' Default to \code{1440}.
+#' Default is \code{1}.
 #'
 #' @return A \code{\link{compilr}} object with twelve elements.
 #' \itemize{
@@ -33,17 +33,14 @@
 #' 
 #' @importFrom compositions ilr acomp gsi.buildilrBase
 #' @importFrom data.table copy as.data.table :=
-#' @export
-#' @examples
-#' data(mcompd)
-#' data(sbp)
-#' cilr <- compilr(data = mcompd, sbp = sbp, 
-#'                  parts = c("TST", "WAKE", "MVPA", "LPA", "SB"), idvar = "ID")
-#' str(cilr)
 #' 
-#' ## cleanup
-#' rm(cilr, mcompd, sbp)
-compilr <- function(data, sbp, parts, total = 1440, idvar = "ID") {
+#' @examples
+#' cilr <- compilr(data = mcompd, sbp = sbp,
+#'                 parts = c("TST", "WAKE", "MVPA", "LPA", "SB"),
+#'                 idvar = "ID", total = 1440)
+#' str(cilr)
+#' @export
+compilr <- function(data, sbp, parts, total = 1, idvar = "ID") {
   
   if (isFALSE(inherits(data, c("data.table", "data.frame", "matrix")))) {
     stop("data must be a data table, data frame or matrix.")
@@ -100,7 +97,6 @@ compilr <- function(data, sbp, parts, total = 1440, idvar = "ID") {
 
   # within-person 
   wcomp <- tcomp - bcomp
-  wcomp <- clo(wcomp, total = total)
   wilr <- ilr(wcomp, V = psi)
   
   # name them for later use

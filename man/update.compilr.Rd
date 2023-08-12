@@ -7,8 +7,7 @@
 \method{update}{compilr}(object, newdata, ...)
 }
 \arguments{
-\item{object}{A \code{\link{compilr}} object containing data of composition,
-ILR coordinates, and other variables to be updated.}
+\item{object}{A \code{\link{compilr}} class object to be updated.}
 
 \item{newdata}{A \code{data.frame} or \code{data.table}
 containing data of all variables used in the analysis.
@@ -17,7 +16,7 @@ It must include a composition and the same ID variable as the existing \code{\li
 \item{...}{generic argument, not in use.}
 }
 \value{
-A updated \code{\link{compilr}} object with twelve elements.
+A \code{\link{compilr}} object with twelve elements.
 \itemize{
 \item{\code{BetweenComp}}{ A vector of class \code{acomp} representing one closed between-person composition
 or a matrix of class \code{acomp} representing multiple closed between-person compositions each in one row.}
@@ -40,15 +39,13 @@ or a matrix of class \code{acomp} representing multiple closed total composition
 This method allows for updating an existing \code{\link{compilr}} object.
 }
 \examples{
-data(mcompd)
-data(sbp)
 cilr <- compilr(data = mcompd, sbp = sbp, 
                  parts = c("TST", "WAKE", "MVPA", "LPA", "SB"), idvar = "ID")
 
+# update with new data
 newdat <- mcompd[ID != 1] # excluding ID 1
-cilr_new <- update(object = cilr, newdata = newdat)
-
-## cleanup
-rm(cilr, mcompd, sbp, cilr_new, newdat)
-
+cilr1 <- update(object = cilr, newdata = newdat)
+}
+\seealso{
+\code{\link{compilr}}
 }

@@ -2,46 +2,27 @@
 #' 
 #' This method allows for updating an existing \code{\link{compilr}} object.
 #' 
-#' @param object A \code{\link{compilr}} object containing data of composition, 
-#' ILR coordinates, and other variables to be updated.
+#' @param object A \code{\link{compilr}} class object to be updated.
 #' @param newdata A \code{data.frame} or \code{data.table}
 #' containing data of all variables used in the analysis. 
 #' It must include a composition and the same ID variable as the existing \code{\link{compilr}} object.
 #' @param ... generic argument, not in use.
 #' 
-#' @return A updated \code{\link{compilr}} object with twelve elements.
-#' \itemize{
-#'   \item{\code{BetweenComp}}{ A vector of class \code{acomp} representing one closed between-person composition
-#'   or a matrix of class \code{acomp} representing multiple closed between-person compositions each in one row.}
-#'   \item{\code{WithinComp}}{ A vector of class \code{acomp} representing one closed within-person composition
-#'   or a matrix of class \code{acomp} representing multiple closed within-person compositions each in one row.}
-#'   \item{\code{TotalComp}}{ A vector of class \code{acomp} representing one closed total composition
-#'   or a matrix of class \code{acomp} representing multiple closed total compositions each in one row.}
-#'   \item{\code{BetweenILR}}{ Isometric log ratio transform of between-person composition.}
-#'   \item{\code{WithinILR}}{ Isometric log ratio transform of within-person composition.}
-#'   \item{\code{TotalILR}}{ Isometric log ratio transform of total composition.}
-#'   \item{\code{data}}{ The user's dataset or imputed dataset if the input data contains zeros.}
-#'   \item{\code{psi}}{ A ILR matrix associated with user-defined partition structure.}
-#'   \item{\code{sbp}}{ The user-defined sequential binary partition matrix.}
-#'   \item{\code{parts}}{ Names of compositional variables.}
-#'   \item{\code{idvar}}{ Name of the variable containing IDs.}
-#'   \item{\code{total}}{ Total amount to which the compositions is closed.}
-#' }
+#' @inherit compilr return
+#' 
+#' @seealso \code{\link{compilr}}
 #' 
 #' @importFrom extraoperators %ain% %snin% %nin%
-#' @exportS3Method update compilr
+#' @method update compilr
+#' 
 #' @examples 
-#' data(mcompd)
-#' data(sbp)
 #' cilr <- compilr(data = mcompd, sbp = sbp, 
 #'                  parts = c("TST", "WAKE", "MVPA", "LPA", "SB"), idvar = "ID")
 #' 
+#' # update with new data
 #' newdat <- mcompd[ID != 1] # excluding ID 1
-#' cilr_new <- update(object = cilr, newdata = newdat)
-#' 
-#' ## cleanup
-#' rm(cilr, mcompd, sbp, cilr_new, newdat)
-#' 
+#' cilr1 <- update(object = cilr, newdata = newdat)
+#' @export
 update.compilr <- function(object, newdata, ...) { 
   
   if (isTRUE(missing(newdata))) {
@@ -77,7 +58,7 @@ update.compilr <- function(object, newdata, ...) {
 #' 
 #' This method allows for updating an existing \code{\link{brmcoda}} object.
 #' 
-#' @param object A fitted \code{\link{brmcoda}} object to be updated. Required.
+#' @param object A fitted \code{\link{brmcoda}} object to be updated.
 #' @param formula. Changes to the formula; for details see \code{\link{update.formula}} and \code{\link{brmsformula}}.
 #' @param newcilr A \code{\link{compilr}} object containing data of composition, 
 #' ILR coordinates, and other variables used in the updated model.
@@ -86,25 +67,22 @@ update.compilr <- function(object, newdata, ...) {
 #' It must include a composition and the same ID variable as the existing \code{\link{compilr}} object.
 #' @param ... Further arguments passed to \code{\link{brm}}.
 #' 
-#' @return A \code{\link{brmcoda}} with two elements
-#' \itemize{
-#'   \item{\code{CompIlr}}{ An object of class \code{compilr} used in the \code{brm} model. }
-#'   \item{\code{Model}}{ An object of class \code{brmsfit}, which contains the posterior draws 
-#'   along with many other useful information about the model.}
-#'   }
+#' @inherit brmcoda return
 #'  
-#' @exportS3Method update brmcoda
+#' @seealso \code{\link{brmcoda}}
+#' 
+#' @method update brmcoda
+#' 
 #' @examples 
 #' \donttest{
 #' if(requireNamespace("cmdstanr")){
-#' data(mcompd)
-#' data(sbp)
-#' cilr <- compilr(data = mcompd, sbp = sbp, 
-#'         parts = c("TST", "WAKE", "MVPA", "LPA", "SB"), idvar = "ID")
 #' 
 #' # model with compositional predictor at between and within-person levels
-#' fit <- brmcoda(compilr = cilr, 
-#'               formula = STRESS ~ bilr1 + bilr2 + bilr3 + bilr4 +
+#' fit <- brmcoda(compilr = compilr(data = mcompd, sbp = sbp, 
+#'                                  parts = c("TST", "WAKE", "MVPA", "LPA", "SB"), 
+#'                                  idvar = "ID"
+#'                                  ), 
+#'               formula = Stress ~ bilr1 + bilr2 + bilr3 + bilr4 +
 #'                                  wilr1 + wilr2 + wilr3 + wilr4 + (1 | ID), 
 #'               chain = 1, iter = 500,
 #'               backend = "cmdstanr")
@@ -115,6 +93,7 @@ update.compilr <- function(object, newdata, ...) {
 #' # using only a subset
 #' fit2 <- update(fit, newdata = mcompd[ID != 1])
 #' }}
+#' @export
 update.brmcoda <- function(object,
                            formula. = NULL,
                            newdata = NULL,
