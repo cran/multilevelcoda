@@ -1,6 +1,6 @@
-8e94fa5822cf018954dc34f42fe326ab *DESCRIPTION
+6369947e881593f325f2af348a3f143c *DESCRIPTION
 346e8cdeaa4b520a3c2add83a9945aed *NAMESPACE
-f7d556275d4a5abc7d061c9c2b3d3ef6 *NEWS.md
+aabab401de8ca6df15cc49f063360495 *NEWS.md
 7f3863ef600d27d3a9a723e806e9c931 *R/basesub.R
 55849e52ae6753fd0425c5ee786219f2 *R/brmcoda-methods.R
 0e091062e1047f564f130630e09737d9 *R/brmcoda.R
@@ -11,7 +11,7 @@ e1d0e064906ead203997d55d294c5c12 *R/compilr.R
 3ae1baf6c40a1c3f34b3548bcb1df927 *R/data.R
 865785c34f11ecd6b797ab02978e214b *R/internal.R
 dce1186dc5e63239b808174fd6b95549 *R/plot.R
-4fa0138d1979a557f54bec271ab4ac3c *R/posterior.R
+678aac812c86417861b54be2a852ddd0 *R/posterior.R
 b2adae38a045d56d2b4b3cfac55212bb *R/shiny.R
 afe0aaf6281d483231afc65e2af6e84b *R/submargins.R
 3b5db659342dbff778e91c2b26d0c503 *R/substitution-helpers.R
@@ -20,7 +20,7 @@ afe0aaf6281d483231afc65e2af6e84b *R/submargins.R
 d596563ed198edb2284894ae5594dd66 *R/update.R
 188f041f0ff5bfbb6d02b278f1d81bc0 *R/wsub.R
 b1b691eb93a28634935c4b30acace23d *R/wsubmargins.R
-fbfa83ab61944f4cb63f9b497da2b4b1 *README.md
+07f7695a6162fd4af56628f5e6f7a769 *README.md
 b9df9abd30bdef994cf4f796f89d9aac *build/vignette.rds
 9d9f1a98e3bf5de89b5a8bee5b2d9f94 *data/mcompd.RData
 fbef2d1d1e3eb8025982bc1eedc9d12c *data/psub.RData
@@ -48,7 +48,7 @@ c9c71e39545f2b45f6e5fa312e66afee *man/compilr.Rd
 905225d5ea33b957b80a6ffc04b6c0c3 *man/diagnostic-quantities-brmcoda.Rd
 01ad9e44afa2f783e2732dfae3a7232b *man/diagnostic_posterior.brmcoda.Rd
 b29058105c8cf7a6e023cd9644ed8f66 *man/draws-index-brmcoda.Rd
-9aca4c8fda850fec630d966c19b870f1 *man/fitted.brmcoda.Rd
+093394a080eb39ba4d770e826a9b7643 *man/fitted.brmcoda.Rd
 e60f17b3eec24371f3f49774fb86d1ed *man/fixef.brmcoda.Rd
 8f4a7bd7c181f284305ed566c56585d0 *man/get-substitution.Rd
 c80811ea5b69ba1d72951b1f8b1bf4cd *man/is.brmcoda.Rd
@@ -63,7 +63,7 @@ c5f5d0ddea267fd3ffab24f46fbbf3e1 *man/nobs.brmcoda.Rd
 b758b61ebc3395d3f8b44014b00f067e *man/pairs.brmcoda.Rd
 9683946acf2f5a922c4328a347a80451 *man/plot.brmcoda.Rd
 d9cb1bbff387fe7943142debcc1eb55b *man/plot.substitution.Rd
-9d1775efdfb924b4d2e716049910719b *man/predict.brmcoda.Rd
+cdfbcb4741d5370bb2b46fd8cd97a7b9 *man/predict.brmcoda.Rd
 9b1600c8f9f61626ee65f4d2ed0fa130 *man/print.brmcoda.Rd
 5b65f53f8bee4ecb1088fdefd7aaddf5 *man/print.compilr.Rd
 9b4bdeab6ca4302cea12121011e3a1a8 *man/print.substitution.Rd
