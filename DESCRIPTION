@@ -1,8 +1,8 @@
 Package: multilevelcoda
 Type: Package
 Title: Estimate Bayesian Multilevel Models for Compositional Data
-Version: 1.2.1
-Date: 2023-8-13
+Version: 1.2.3
+Date: 2024-3-6
 Authors@R: 
     c(person(given = "Flora",
              family = "Le",
@@ -29,7 +29,8 @@ RoxygenNote: 7.2.3
 Depends: R (>= 4.0.0)
 Imports: stats, data.table (>= 1.12.0), compositions, brms, bayestestR,
         extraoperators, ggplot2, emmeans, insight, foreach, doFuture,
-        abind, graphics
+        abind, graphics, shiny, plotly, hrbrthemes, bslib, DT, loo,
+        bayesplot
 Suggests: testthat (>= 3.0.0), covr, withr, knitr, rmarkdown, lme4,
         cmdstanr (>= 0.5.0)
 Config/testthat/edition: 3
@@ -37,9 +38,9 @@ Config/testthat/parallel: true
 Additional_repositories: https://mc-stan.org/r-packages/
 VignetteBuilder: knitr
 NeedsCompilation: no
-Packaged: 2023-08-13 03:40:19 UTC; florale
+Packaged: 2024-03-10 19:54:05 UTC; florale
 Author: Flora Le [aut, cre] (<https://orcid.org/0000-0003-0089-8167>),
   Joshua F. Wiley [aut] (<https://orcid.org/0000-0002-0271-6702>)
 Maintainer: Flora Le <13florale@gmail.com>
 Repository: CRAN
-Date/Publication: 2023-08-13 12:40:07 UTC
+Date/Publication: 2024-03-10 23:00:03 UTC

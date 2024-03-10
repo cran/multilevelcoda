@@ -7,6 +7,56 @@ is.substitution <- function(x) {
   inherits(x, "substitution")
 }
 
+#' Constructor function for \code{substitution} class.
+#'
+#' @param BetweenSub A list of results from \code{bsub} or \code{NULL}
+#' @param BetweenSubMargins A list of results from \code{bsubmargins} or \code{NULL}
+#' @param WithinSub A list of results from \code{wsub} or \code{NULL}
+#' @param WithinSubMargins A list of results from \code{wsubmargins} or \code{NULL}
+#' @param delta A numeric vector of the amount of substitution
+#' @param ref A character value specifying the reference grid
+#' @param level A character value specifying the level of substitution
+#' @param weight The weight to use in calculation of the reference composition
+#' @param parts The parts of the composition
+#' @param summary A logical value specifying whether to summarize the results
+#' 
+#' @seealso \code{\link{substitution}}
+#' 
+#' @return An object of class \code{substitution}
+#'
+create_substitution <-
+  function(BetweenSub, WithinSub,
+           BetweenSubMargins, WithinSubMargins,
+           delta,
+           ref,
+           level,
+           weight,
+           parts,
+           summary) {
+    
+    stopifnot(is.list(BetweenSub) || is.null(BetweenSub))
+    stopifnot(is.list(WithinSub) || is.null(WithinSub))
+    stopifnot(is.list(BetweenSubMargins) || is.null(BetweenSubMargins))
+    stopifnot(is.list(WithinSubMargins) || is.null(WithinSubMargins))
+    
+    out <- list(
+      BetweenSub = BetweenSub,
+      WithinSub = WithinSub,
+      BetweenSubMargins = BetweenSubMargins,
+      WithinSubMargins = WithinSubMargins,
+      delta = delta,
+      ref = ref,
+      level = level,
+      weight = weight,
+      parts = parts,
+      summary = summary
+    )
+    
+    class(out) <- "substitution"
+    
+    return(out)
+  }
+
 #' Reference Grid for \code{substitution} model.
 #' 
 #' Build a dataset for \code{fitted.brmcoda} used in \code{substitution} model
@@ -278,7 +328,7 @@ NULL
     bcompsub  <- acomp(dnew[, object$CompILR$parts, with = FALSE], total = object$CompILR$total)
     
     bilrsub <- ilr(bcompsub, V = object$CompILR$psi)
-    wilr0 <- d0[1, colnames(object$CompILR$WithinILR), with = FALSE]
+    wilr0 <- as.data.table(matrix(0, nrow = nrow(bilrsub), ncol = ncol(bilrsub)))
     
     colnames(bilrsub) <- colnames(object$CompILR$BetweenILR)
     colnames(wilr0) <- colnames(object$CompILR$WithinILR)
@@ -661,8 +711,8 @@ NULL
 }
 
 # clustermean Substitution Model.
-.get.submargins <- function(object, basesub, t,
-                            y0, delta,
+.get.submargins <- function(object, delta, basesub,
+                            comp0, y0, d0,
                             level, ref,
                             ...) {
   
@@ -685,8 +735,8 @@ NULL
       sub <- posub * delta[j]
       for (k in seq_len(nrow(sub))) {
         subk <- sub[k, ]
-        subk <- subk[rep(seq_len(nrow(subk)), nrow(t)), ]
-        newcomp <- t + subk
+        subk <- subk[rep(seq_len(nrow(subk)), nrow(comp0)), ]
+        newcomp <- comp0 + subk
         Delta <- subk[, get(i)]
         names(newcomp) <- object$CompILR$parts
         
@@ -698,7 +748,7 @@ NULL
         dnew$Delta <- as.numeric(dnew$Delta)
         
         # remove impossible reallocation that result in negative values 
-        cols <- colnames(dnew) %sin% c(colnames(t), colnames(basesub))
+        cols <- colnames(dnew) %sin% c(colnames(comp0), colnames(basesub))
         dnew <- dnew[rowSums(dnew[, ..cols] < 0) == 0]
         
         # compositions and ilrs for predictions
@@ -707,8 +757,10 @@ NULL
         
         colnames(tilr) <- colnames(object$CompILR$TotalILR)
         
-        # prediction
+        # substitution data
         dsub <- cbind(dnew, tilr)
+
+        # prediction
         ysub <-
           fitted(
             object,
@@ -733,10 +785,10 @@ NULL
     jout$To <- iv
     jout[, From := rep(subvar, length.out = nrow(jout))]
     jout$Level <- level
+    jout$Reference <- ref
     
     names(jout) <- c("Mean", "CI_low", "CI_high", 
-                     "Delta", "To", "From", 
-                     "Level")
+                     "Delta", "To", "From", "Level", "Reference")
     
     # store final results for entire composition
     jout <- list(jout)

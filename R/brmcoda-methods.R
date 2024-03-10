@@ -186,7 +186,8 @@ bayes_factor.brmcoda <- function(x1, x2, ...) {
   m1 <- deparse(substitute(x1))
   m2 <- deparse(substitute(x2))
   
-  cat("Estimated Bayes factor in favor of", m1, "over", m2, ":", out$bf)
+  attr(out, "model_names") <- c(m1, m2)
+  out
 }
 
 #' Extract Priors of a \code{brmsfit} from a \code{brmcoda} object
@@ -206,21 +207,40 @@ prior_summary.brmcoda <- function(object, ...) {
   prior_summary(object$Model, ...)
 }
 
-#' Posteriors Sampling Diagnostic
+#' Posterior Predictive Checks for \code{brmcoda} Objects
 #' 
-#' Extract diagnostic metrics (Effective Sample Size (`ESS`), `Rhat` and Monte
-#' Carlo Standard Error `MCSE`).
+#' Perform posterior predictive checks with the help of the \pkg{bayesplot} package.
 #' 
-#' @param posteriors An object of class \code{brmcoda}.
-#' @inheritParams bayestestR::diagnostic_posterior
-#' @param ... Other arguments passed to \code{\link{diagnostic_posterior}}.
+#' @aliases pp_check
 #' 
-#' @importFrom bayestestR diagnostic_posterior
-#' @method diagnostic_posterior brmcoda
+#' @param object An object of class \code{brmcoda}.
+#' @inheritParams brms::pp_check.brmsfit
 #' 
-#' @seealso \code{\link[bayestestR:diagnostic_posterior]{diagnostic_posterior}}
+#' @importFrom bayesplot pp_check
+#' @method pp_check brmcoda
+#' 
+#' @seealso \code{\link[brms:pp_check.brmsfit]{pp_check.brmsfit}}
 #' 
 #' @export
-diagnostic_posterior.brmcoda <- function(posteriors, diagnostic = c("ESS", "Rhat"), ...) {
-  diagnostic_posterior(posteriors$Model, diagnostic = diagnostic, ...)
+pp_check.brmcoda <- function(object, ...) {
+  pp_check(object$Model, ...)
 }
+
+#' #' Posteriors Sampling Diagnostic
+#' #' 
+#' #' Extract diagnostic metrics (Effective Sample Size (`ESS`), `Rhat` and Monte
+#' #' Carlo Standard Error `MCSE`).
+#' #' 
+#' #' @param posteriors An object of class \code{brmcoda}.
+#' #' @inheritParams bayestestR::diagnostic_posterior
+#' #' @param ... Other arguments passed to \code{\link{diagnostic_posterior}}.
+#' #' 
+#' #' @importFrom bayestestR diagnostic_posterior
+#' #' @method diagnostic_posterior brmcoda
+#' #' 
+#' #' @seealso \code{\link[bayestestR:diagnostic_posterior]{diagnostic_posterior}}
+#' #' 
+#' #' @export
+#' diagnostic_posterior.brmcoda <- function(posteriors, diagnostic = c("ESS", "Rhat"), ...) {
+#'   diagnostic_posterior(posterior$Model, diagnostic = diagnostic, ...)
+#' }

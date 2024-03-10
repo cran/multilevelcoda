@@ -425,3 +425,24 @@ VarCorr.brmcoda <- function(x, ...) {
 residuals.brmcoda <- function(object, ...) {
   residuals(object$Model, ...)
 }
+
+#' Efficient approximate leave-one-out cross-validation (LOO)
+#' 
+#' Perform approximate leave-one-out cross-validation based
+#' on the posterior likelihood using the \pkg{loo} package.
+#' For more details see \code{\link[loo:loo]{loo}}.
+#' 
+#' @aliases loo
+#' 
+#' @param x A \code{brmcoda} object.
+#' @inheritParams brms::loo.brmsfit
+#' @inherit brms::loo.brmsfit return
+#'   
+#' @seealso \code{\link[brms:loo.brmsfit]{loo.brmsfit}}
+#' 
+#' @importFrom loo loo is.loo
+#' @method loo brmcoda
+#' @export
+loo.brmcoda <- function(x, ...) {
+  loo(x$Model, ...)
+}

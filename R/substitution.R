@@ -33,7 +33,6 @@
 #' 
 #' @return A list containing the results of multilevel compositional substitution model.
 #' The first four lists contain the results of the substitution estimation for a compositional part. 
-#' \itemize{
 #'   \item{\code{Mean}}{ Posterior means.}
 #'   \item{\code{CI_low} and \code{CI_high}}{ 95% credible intervals.}
 #'   \item{\code{Delta}}{ Amount substituted across compositional parts.}
@@ -41,7 +40,6 @@
 #'   \item{\code{To}}{ Compositional parts that is substituted to.}
 #'   \item{\code{Level}}{ Level where changes in composition takes place. Either \code{between} or \code{within}.}
 #'   \item{\code{Reference}}{ Either \code{grandmean}, \code{clustermean}, or \code{users}.}
-#' }
 #' 
 #' @importFrom data.table as.data.table copy :=
 #' @importFrom compositions acomp ilr clo mean.acomp
@@ -147,6 +145,7 @@ substitution <- function(object,
     }
   }
   
+  bmout <- bout <- NULL
   if (isTRUE("between" %in% level)) {
     if (isTRUE("grandmean" %in% ref)) {
       bout <- bsub(
@@ -180,6 +179,7 @@ substitution <- function(object,
     }
   }
   
+  wmout <- wout <- NULL
   if (isTRUE("within" %in% level)) {
     if (isTRUE("grandmean" %in% ref)) {
       wout <- wsub(
@@ -213,17 +213,15 @@ substitution <- function(object,
     }
   }
   
-  structure(
-    list(
-      BetweenSub = if(exists("bout")) (bout) else (NULL),
-      WithinSub = if(exists("wout")) (wout) else (NULL),
-      BetweenSubMargins = if(exists("bmout")) (bmout) else (NULL),
-      WithinSubMargins = if(exists("wmout")) (wmout) else (NULL),
+create_substitution(
+      BetweenSub = bout,
+      WithinSub = wout,
+      BetweenSubMargins = bmout,
+      WithinSubMargins = wmout,
       delta = delta,
       ref = ref,
       level = level,
       weight = weight,
       parts = object$CompILR$parts,
-      summary = summary),
-    class = "substitution")
+      summary = summary)
 }

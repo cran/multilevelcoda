@@ -11,7 +11,7 @@
 
 <meta name="author" content="Flora Le" />
 
-<meta name="date" content="2023-08-11" />
+<meta name="date" content="2023-08-14" />
 
 <title>Improving MCMC Sampling for Bayesian Compositional Multilevel Models</title>
 
@@ -1603,7 +1603,7 @@ border-radius: 0px;
 <h1 class="title toc-ignore">Improving MCMC Sampling for Bayesian
 Compositional Multilevel Models</h1>
 <h4 class="author">Flora Le</h4>
-<h4 class="date">2023-08-11</h4>
+<h4 class="date">2023-08-14</h4>
 
 </div>
 
@@ -2126,33 +2126,30 @@ Density and Trace Plot when using centered parameterisation
 <div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" tabindex="-1"></a><span class="co"># example model</span></span>
 <span id="cb15-2"><a href="#cb15-2" tabindex="-1"></a><span class="fu">print</span>(rstan<span class="sc">::</span><span class="fu">get_elapsed_time</span>(fit<span class="sc">$</span>Model<span class="sc">$</span>fit))</span>
 <span id="cb15-3"><a href="#cb15-3" tabindex="-1"></a><span class="co">#&gt;         warmup sample</span></span>
-<span id="cb15-4"><a href="#cb15-4" tabindex="-1"></a><span class="co">#&gt; chain:1   16.3   35.9</span></span>
-<span id="cb15-5"><a href="#cb15-5" tabindex="-1"></a><span class="co">#&gt; chain:2   14.1   35.8</span></span>
-<span id="cb15-6"><a href="#cb15-6" tabindex="-1"></a><span class="co">#&gt; chain:3   18.6   35.8</span></span>
-<span id="cb15-7"><a href="#cb15-7" tabindex="-1"></a><span class="co">#&gt; chain:4   14.9   35.8</span></span>
+<span id="cb15-4"><a href="#cb15-4" tabindex="-1"></a><span class="co">#&gt; chain:1   16.7   36.6</span></span>
+<span id="cb15-5"><a href="#cb15-5" tabindex="-1"></a><span class="co">#&gt; chain:2   14.6   36.6</span></span>
+<span id="cb15-6"><a href="#cb15-6" tabindex="-1"></a><span class="co">#&gt; chain:3   19.3   36.3</span></span>
+<span id="cb15-7"><a href="#cb15-7" tabindex="-1"></a><span class="co">#&gt; chain:4   15.4   36.7</span></span>
 <span id="cb15-8"><a href="#cb15-8" tabindex="-1"></a></span>
 <span id="cb15-9"><a href="#cb15-9" tabindex="-1"></a><span class="co"># increased iter</span></span>
 <span id="cb15-10"><a href="#cb15-10" tabindex="-1"></a><span class="fu">print</span>(rstan<span class="sc">::</span><span class="fu">get_elapsed_time</span>(fit_it<span class="sc">$</span>Model<span class="sc">$</span>fit))</span>
 <span id="cb15-11"><a href="#cb15-11" tabindex="-1"></a><span class="co">#&gt;         warmup sample</span></span>
-<span id="cb15-12"><a href="#cb15-12" tabindex="-1"></a><span class="co">#&gt; chain:1   23.5    131</span></span>
-<span id="cb15-13"><a href="#cb15-13" tabindex="-1"></a><span class="co">#&gt; chain:2   21.0    130</span></span>
-<span id="cb15-14"><a href="#cb15-14" tabindex="-1"></a><span class="co">#&gt; chain:3   25.2    130</span></span>
-<span id="cb15-15"><a href="#cb15-15" tabindex="-1"></a><span class="co">#&gt; chain:4   22.0    131</span></span>
+<span id="cb15-12"><a href="#cb15-12" tabindex="-1"></a><span class="co">#&gt; chain:1   23.2    128</span></span>
+<span id="cb15-13"><a href="#cb15-13" tabindex="-1"></a><span class="co">#&gt; chain:2   20.9    129</span></span>
+<span id="cb15-14"><a href="#cb15-14" tabindex="-1"></a><span class="co">#&gt; chain:3   25.3    129</span></span>
+<span id="cb15-15"><a href="#cb15-15" tabindex="-1"></a><span class="co">#&gt; chain:4   21.8    129</span></span>
 <span id="cb15-16"><a href="#cb15-16" tabindex="-1"></a></span>
 <span id="cb15-17"><a href="#cb15-17" tabindex="-1"></a><span class="co"># centered parameterisation</span></span>
 <span id="cb15-18"><a href="#cb15-18" tabindex="-1"></a>rstan<span class="sc">::</span><span class="fu">get_elapsed_time</span>(bm_centered<span class="sc">$</span>fit)</span>
 <span id="cb15-19"><a href="#cb15-19" tabindex="-1"></a><span class="co">#&gt;         warmup sample</span></span>
-<span id="cb15-20"><a href="#cb15-20" tabindex="-1"></a><span class="co">#&gt; chain:1    202   1128</span></span>
-<span id="cb15-21"><a href="#cb15-21" tabindex="-1"></a><span class="co">#&gt; chain:2    199   1126</span></span>
-<span id="cb15-22"><a href="#cb15-22" tabindex="-1"></a><span class="co">#&gt; chain:3    202   1125</span></span>
-<span id="cb15-23"><a href="#cb15-23" tabindex="-1"></a><span class="co">#&gt; chain:4    201   1130</span></span></code></pre></div>
-<p>It took
-<code>r sum(colSums(rstan::get_elapsed_time(fit_it$Model$fit)))</code>
-to obtain an average-ish of 1000 across the four parameters with
-initially low ESS. To achieve an ESS of 10 000 across all parameters,
-simplying increasing iterations should take around
-<code>r sum(colSums(rstan::get_elapsed_time(fit_it$Model$fit))) * 10</code>,
-whereas centered parameterisation takes around 5314.382.</p>
+<span id="cb15-20"><a href="#cb15-20" tabindex="-1"></a><span class="co">#&gt; chain:1    200   1125</span></span>
+<span id="cb15-21"><a href="#cb15-21" tabindex="-1"></a><span class="co">#&gt; chain:2    199   1121</span></span>
+<span id="cb15-22"><a href="#cb15-22" tabindex="-1"></a><span class="co">#&gt; chain:3    202   1121</span></span>
+<span id="cb15-23"><a href="#cb15-23" tabindex="-1"></a><span class="co">#&gt; chain:4    200   1124</span></span></code></pre></div>
+<p>It took 607.051 to obtain an average-ish of 1000 across the four
+parameters with initially low ESS. To achieve an ESS of 10 000 across
+all parameters, simplying increasing iterations should take around
+6070.51, whereas centered parameterisation takes around 5292.319.</p>
 </div>
 <div id="conclusion" class="section level1" number="6">
 <h1><span class="header-section-number">6</span> Conclusion</h1>
@@ -2162,10 +2159,9 @@ observations, number of compositional parts, and magnitude of modeled
 variance (full results of simulation study will be published at a later
 date). However, in the case of large data and small sample variation, we
 recommend centered parameterisation or increasing iterations to achieve
-efficient MCMC sampling. Based on results of the case study, if time is
-not a constraint, centered parameterisation would give the most reliable
-results in terms of ESS-to-draw ratios for all parameters. However,
-increasing iteration can also be used to achieve acceptable ESS.</p>
+efficient MCMC sampling. Based on results of the case study, centered
+parameterisation would give more reliable results in terms of
+ESS-to-draw ratios for all parameters and computational time.</p>
 </div>
 <div id="references" class="section level1 unnumbered">
 <h1 class="unnumbered">References</h1>
