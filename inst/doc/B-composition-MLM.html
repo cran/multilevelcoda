@@ -1321,7 +1321,7 @@ overflow: visible;
 </style>
 <style type="text/css" data-origin="pandoc">
 pre > code.sourceCode { white-space: pre; position: relative; }
-pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span { line-height: 1.25; }
 pre > code.sourceCode > span:empty { height: 1.2em; }
 .sourceCode { overflow: visible; }
 code.sourceCode > span { color: inherit; text-decoration: inherit; }
@@ -1620,11 +1620,27 @@ backend</td>
 </tbody>
 </table>
 <div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">library</span>(multilevelcoda)</span>
-<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a><span class="fu">library</span>(brms)</span>
-<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a><span class="fu">library</span>(bayestestR)</span>
-<span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a><span class="fu">library</span>(doFuture)</span>
-<span id="cb1-5"><a href="#cb1-5" tabindex="-1"></a></span>
-<span id="cb1-6"><a href="#cb1-6" tabindex="-1"></a><span class="fu">options</span>(<span class="at">digits =</span> <span class="dv">3</span>) <span class="co"># reduce number of digits shown</span></span></code></pre></div>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a><span class="co">#&gt; Attaching package: &#39;multilevelcoda&#39;</span></span>
+<span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a><span class="co">#&gt; The following objects are masked _by_ &#39;.GlobalEnv&#39;:</span></span>
+<span id="cb1-5"><a href="#cb1-5" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb1-6"><a href="#cb1-6" tabindex="-1"></a><span class="co">#&gt;     psub, sbp</span></span>
+<span id="cb1-7"><a href="#cb1-7" tabindex="-1"></a><span class="fu">library</span>(brms)</span>
+<span id="cb1-8"><a href="#cb1-8" tabindex="-1"></a><span class="co">#&gt; Loading required package: Rcpp</span></span>
+<span id="cb1-9"><a href="#cb1-9" tabindex="-1"></a><span class="co">#&gt; Loading &#39;brms&#39; package (version 2.21.0). Useful instructions</span></span>
+<span id="cb1-10"><a href="#cb1-10" tabindex="-1"></a><span class="co">#&gt; can be found by typing help(&#39;brms&#39;). A more detailed introduction</span></span>
+<span id="cb1-11"><a href="#cb1-11" tabindex="-1"></a><span class="co">#&gt; to the package is available through vignette(&#39;brms_overview&#39;).</span></span>
+<span id="cb1-12"><a href="#cb1-12" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb1-13"><a href="#cb1-13" tabindex="-1"></a><span class="co">#&gt; Attaching package: &#39;brms&#39;</span></span>
+<span id="cb1-14"><a href="#cb1-14" tabindex="-1"></a><span class="co">#&gt; The following object is masked from &#39;package:stats&#39;:</span></span>
+<span id="cb1-15"><a href="#cb1-15" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb1-16"><a href="#cb1-16" tabindex="-1"></a><span class="co">#&gt;     ar</span></span>
+<span id="cb1-17"><a href="#cb1-17" tabindex="-1"></a><span class="fu">library</span>(bayestestR)</span>
+<span id="cb1-18"><a href="#cb1-18" tabindex="-1"></a><span class="fu">library</span>(doFuture)</span>
+<span id="cb1-19"><a href="#cb1-19" tabindex="-1"></a><span class="co">#&gt; Loading required package: foreach</span></span>
+<span id="cb1-20"><a href="#cb1-20" tabindex="-1"></a><span class="co">#&gt; Loading required package: future</span></span>
+<span id="cb1-21"><a href="#cb1-21" tabindex="-1"></a></span>
+<span id="cb1-22"><a href="#cb1-22" tabindex="-1"></a><span class="fu">options</span>(<span class="at">digits =</span> <span class="dv">3</span>) <span class="co"># reduce number of digits shown</span></span></code></pre></div>
 <p>For the examples, we make use of three built in datasets:</p>
 <table>
 <colgroup>
@@ -1679,73 +1695,73 @@ compositional variables, used for substitution analyses</td>
 <tr class="odd">
 <td align="right">185</td>
 <td align="right">1</td>
-<td align="right">3.67</td>
+<td align="right">4</td>
 <td align="right">542</td>
-<td align="right">99.0</td>
-<td align="right">297.4</td>
+<td align="right">99</td>
+<td align="right">297</td>
 <td align="right">460</td>
-<td align="right">41.4</td>
-<td align="right">29.7</td>
+<td align="right">41</td>
+<td align="right">30</td>
 <td align="right">0</td>
 </tr>
 <tr class="even">
 <td align="right">185</td>
 <td align="right">2</td>
-<td align="right">7.21</td>
+<td align="right">7</td>
 <td align="right">458</td>
-<td align="right">49.4</td>
-<td align="right">117.3</td>
+<td align="right">49</td>
+<td align="right">117</td>
 <td align="right">653</td>
-<td align="right">162.3</td>
-<td align="right">29.7</td>
+<td align="right">162</td>
+<td align="right">30</td>
 <td align="right">0</td>
 </tr>
 <tr class="odd">
 <td align="right">185</td>
 <td align="right">3</td>
-<td align="right">2.84</td>
+<td align="right">3</td>
 <td align="right">271</td>
-<td align="right">41.1</td>
-<td align="right">488.7</td>
+<td align="right">41</td>
+<td align="right">489</td>
 <td align="right">625</td>
-<td align="right">14.5</td>
-<td align="right">29.7</td>
+<td align="right">15</td>
+<td align="right">30</td>
 <td align="right">0</td>
 </tr>
 <tr class="even">
 <td align="right">184</td>
 <td align="right">12</td>
-<td align="right">2.36</td>
+<td align="right">2</td>
 <td align="right">286</td>
-<td align="right">52.7</td>
-<td align="right">106.9</td>
+<td align="right">53</td>
+<td align="right">107</td>
 <td align="right">906</td>
-<td align="right">89.2</td>
-<td align="right">22.3</td>
+<td align="right">89</td>
+<td align="right">22</td>
 <td align="right">1</td>
 </tr>
 <tr class="odd">
 <td align="right">184</td>
 <td align="right">13</td>
-<td align="right">1.18</td>
+<td align="right">1</td>
 <td align="right">281</td>
-<td align="right">18.8</td>
-<td align="right">403.0</td>
+<td align="right">19</td>
+<td align="right">403</td>
 <td align="right">611</td>
-<td align="right">126.3</td>
-<td align="right">22.3</td>
+<td align="right">126</td>
+<td align="right">22</td>
 <td align="right">1</td>
 </tr>
 <tr class="even">
 <td align="right">184</td>
 <td align="right">14</td>
-<td align="right">0.00</td>
+<td align="right">0</td>
 <td align="right">397</td>
-<td align="right">26.5</td>
-<td align="right">39.9</td>
+<td align="right">26</td>
+<td align="right">40</td>
 <td align="right">587</td>
-<td align="right">389.8</td>
-<td align="right">22.3</td>
+<td align="right">390</td>
+<td align="right">22</td>
 <td align="right">1</td>
 </tr>
 </tbody>
@@ -1959,14 +1975,14 @@ compositional predictors</h1>
 isometric log ratio (ILR) coordinates.</h2>
 <p>Compositional data are often expressed as a set of isometric log
 ratio (ILR) coordinates in regression models. We can use the
-<code>compilr()</code> function to calculate both between- and
+<code>complr()</code> function to calculate both between- and
 within-level ILR coordinates for use in subsequent models as
 predictors.</p>
-<p><em>Notes: <code>compilr()</code> also calculates total ILR
+<p><em>Notes: <code>complr()</code> also calculates total ILR
 coordinates to be used as outcomes (or predictors) in models, if the
 decomposition into a between- and within-level ILR coordinates was not
 desired.</em></p>
-<p>The <code>compilr()</code> function for multilevel data requires four
+<p>The <code>complr()</code> function for multilevel data requires four
 arguments:</p>
 <table>
 <colgroup>
@@ -2010,18 +2026,18 @@ should be closed.</td>
 </tr>
 </tbody>
 </table>
-<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a>cilr <span class="ot">&lt;-</span> <span class="fu">compilr</span>(<span class="at">data =</span> mcompd, <span class="at">sbp =</span> sbp,</span>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a>cilr <span class="ot">&lt;-</span> <span class="fu">complr</span>(<span class="at">data =</span> mcompd, <span class="at">sbp =</span> sbp,</span>
 <span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a>                <span class="at">parts =</span> <span class="fu">c</span>(<span class="st">&quot;TST&quot;</span>, <span class="st">&quot;WAKE&quot;</span>, <span class="st">&quot;MVPA&quot;</span>, <span class="st">&quot;LPA&quot;</span>, <span class="st">&quot;SB&quot;</span>), <span class="at">idvar =</span> <span class="st">&quot;ID&quot;</span>, <span class="at">total =</span> <span class="dv">1440</span>)</span></code></pre></div>
 </div>
 <div id="fitting-model" class="section level2" number="1.2">
 <h2><span class="header-section-number">1.2</span> Fitting model</h2>
-<p>We now will use output from the <code>compilr()</code> to fit our
+<p>We now will use output from the <code>complr()</code> to fit our
 <code>brms</code> model, using the <code>brmcoda()</code>. Here is a
 model predicting <code>Stress</code> from between- and within-person
 sleep-wake behaviours (expressed as ILR coordinates).</p>
 <p><em>Notes: make sure you pass the correct names of the ILR
 coordinates to <code>brms</code> model.</em></p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a>m <span class="ot">&lt;-</span> <span class="fu">brmcoda</span>(<span class="at">compilr =</span> cilr,</span>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a>m <span class="ot">&lt;-</span> <span class="fu">brmcoda</span>(<span class="at">complr =</span> cilr,</span>
 <span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a>             <span class="at">formula =</span> Stress <span class="sc">~</span> bilr1 <span class="sc">+</span> bilr2 <span class="sc">+</span> bilr3 <span class="sc">+</span> bilr4 <span class="sc">+</span></span>
 <span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a>               wilr1 <span class="sc">+</span> wilr2 <span class="sc">+</span> wilr3 <span class="sc">+</span> wilr4 <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> ID),</span>
 <span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a>             <span class="at">cores =</span> <span class="dv">8</span>, <span class="at">seed =</span> <span class="dv">123</span>, <span class="at">backend =</span> <span class="st">&quot;cmdstanr&quot;</span>)</span></code></pre></div>
@@ -2034,26 +2050,26 @@ coordinates to <code>brms</code> model.</em></p>
 <span id="cb5-6"><a href="#cb5-6" tabindex="-1"></a><span class="co">#&gt;   Draws: 4 chains, each with iter = 2000; warmup = 1000; thin = 1;</span></span>
 <span id="cb5-7"><a href="#cb5-7" tabindex="-1"></a><span class="co">#&gt;          total post-warmup draws = 4000</span></span>
 <span id="cb5-8"><a href="#cb5-8" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb5-9"><a href="#cb5-9" tabindex="-1"></a><span class="co">#&gt; Group-Level Effects: </span></span>
+<span id="cb5-9"><a href="#cb5-9" tabindex="-1"></a><span class="co">#&gt; Multilevel Hyperparameters:</span></span>
 <span id="cb5-10"><a href="#cb5-10" tabindex="-1"></a><span class="co">#&gt; ~ID (Number of levels: 266) </span></span>
 <span id="cb5-11"><a href="#cb5-11" tabindex="-1"></a><span class="co">#&gt;               Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS</span></span>
-<span id="cb5-12"><a href="#cb5-12" tabindex="-1"></a><span class="co">#&gt; sd(Intercept)     1.00      0.06     0.88     1.13 1.00     1333     2488</span></span>
+<span id="cb5-12"><a href="#cb5-12" tabindex="-1"></a><span class="co">#&gt; sd(Intercept)     1.00      0.06     0.88     1.12 1.00     1169     2516</span></span>
 <span id="cb5-13"><a href="#cb5-13" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb5-14"><a href="#cb5-14" tabindex="-1"></a><span class="co">#&gt; Population-Level Effects: </span></span>
+<span id="cb5-14"><a href="#cb5-14" tabindex="-1"></a><span class="co">#&gt; Regression Coefficients:</span></span>
 <span id="cb5-15"><a href="#cb5-15" tabindex="-1"></a><span class="co">#&gt;           Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS</span></span>
-<span id="cb5-16"><a href="#cb5-16" tabindex="-1"></a><span class="co">#&gt; Intercept     2.57      0.48     1.63     3.48 1.00     1303     1965</span></span>
-<span id="cb5-17"><a href="#cb5-17" tabindex="-1"></a><span class="co">#&gt; bilr1         0.17      0.32    -0.46     0.77 1.01     1013     1876</span></span>
-<span id="cb5-18"><a href="#cb5-18" tabindex="-1"></a><span class="co">#&gt; bilr2         0.41      0.34    -0.25     1.07 1.01     1090     1781</span></span>
-<span id="cb5-19"><a href="#cb5-19" tabindex="-1"></a><span class="co">#&gt; bilr3         0.13      0.22    -0.28     0.55 1.00     1177     1885</span></span>
-<span id="cb5-20"><a href="#cb5-20" tabindex="-1"></a><span class="co">#&gt; bilr4        -0.04      0.28    -0.58     0.49 1.00     1319     2018</span></span>
-<span id="cb5-21"><a href="#cb5-21" tabindex="-1"></a><span class="co">#&gt; wilr1        -0.34      0.12    -0.58    -0.10 1.00     3182     3218</span></span>
-<span id="cb5-22"><a href="#cb5-22" tabindex="-1"></a><span class="co">#&gt; wilr2         0.05      0.14    -0.21     0.31 1.00     3750     3215</span></span>
-<span id="cb5-23"><a href="#cb5-23" tabindex="-1"></a><span class="co">#&gt; wilr3        -0.11      0.08    -0.25     0.05 1.00     3444     3129</span></span>
-<span id="cb5-24"><a href="#cb5-24" tabindex="-1"></a><span class="co">#&gt; wilr4         0.24      0.10     0.04     0.43 1.00     4051     3219</span></span>
+<span id="cb5-16"><a href="#cb5-16" tabindex="-1"></a><span class="co">#&gt; Intercept     2.61      0.49     1.66     3.60 1.00     1101     1761</span></span>
+<span id="cb5-17"><a href="#cb5-17" tabindex="-1"></a><span class="co">#&gt; bilr1         0.19      0.32    -0.46     0.82 1.00      943     1863</span></span>
+<span id="cb5-18"><a href="#cb5-18" tabindex="-1"></a><span class="co">#&gt; bilr2         0.39      0.35    -0.29     1.06 1.00     1061     1922</span></span>
+<span id="cb5-19"><a href="#cb5-19" tabindex="-1"></a><span class="co">#&gt; bilr3         0.14      0.22    -0.28     0.56 1.01      895     1673</span></span>
+<span id="cb5-20"><a href="#cb5-20" tabindex="-1"></a><span class="co">#&gt; bilr4        -0.04      0.28    -0.59     0.51 1.00      976     1923</span></span>
+<span id="cb5-21"><a href="#cb5-21" tabindex="-1"></a><span class="co">#&gt; wilr1        -0.33      0.12    -0.56    -0.09 1.00     3226     3037</span></span>
+<span id="cb5-22"><a href="#cb5-22" tabindex="-1"></a><span class="co">#&gt; wilr2         0.06      0.13    -0.20     0.33 1.00     3469     2836</span></span>
+<span id="cb5-23"><a href="#cb5-23" tabindex="-1"></a><span class="co">#&gt; wilr3        -0.09      0.08    -0.25     0.06 1.00     3088     2932</span></span>
+<span id="cb5-24"><a href="#cb5-24" tabindex="-1"></a><span class="co">#&gt; wilr4         0.23      0.10     0.04     0.42 1.00     3225     2965</span></span>
 <span id="cb5-25"><a href="#cb5-25" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb5-26"><a href="#cb5-26" tabindex="-1"></a><span class="co">#&gt; Family Specific Parameters: </span></span>
+<span id="cb5-26"><a href="#cb5-26" tabindex="-1"></a><span class="co">#&gt; Further Distributional Parameters:</span></span>
 <span id="cb5-27"><a href="#cb5-27" tabindex="-1"></a><span class="co">#&gt;       Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS</span></span>
-<span id="cb5-28"><a href="#cb5-28" tabindex="-1"></a><span class="co">#&gt; sigma     2.37      0.03     2.31     2.43 1.00     4599     2577</span></span>
+<span id="cb5-28"><a href="#cb5-28" tabindex="-1"></a><span class="co">#&gt; sigma     2.38      0.03     2.33     2.44 1.00     5896     2788</span></span>
 <span id="cb5-29"><a href="#cb5-29" tabindex="-1"></a><span class="co">#&gt; </span></span>
 <span id="cb5-30"><a href="#cb5-30" tabindex="-1"></a><span class="co">#&gt; Draws were sampled using sample(hmc). For each parameter, Bulk_ESS</span></span>
 <span id="cb5-31"><a href="#cb5-31" tabindex="-1"></a><span class="co">#&gt; and Tail_ESS are effective sample size measures, and Rhat is the potential</span></span>
@@ -2157,25 +2173,25 @@ factors, we will use 40,000 posterior draws for each model.</p>
 must be fitted with an additional non-default argument
 <code>save_pars = save_pars(all = TRUE)</code>.</p>
 <div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="co"># intercept only model</span></span>
-<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a>m0 <span class="ot">&lt;-</span> <span class="fu">brmcoda</span>(<span class="at">compilr =</span> cilr,</span>
+<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a>m0 <span class="ot">&lt;-</span> <span class="fu">brmcoda</span>(<span class="at">complr =</span> cilr,</span>
 <span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a>             <span class="at">formula =</span> Stress <span class="sc">~</span> <span class="dv">1</span> <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> ID),</span>
 <span id="cb6-4"><a href="#cb6-4" tabindex="-1"></a>             <span class="at">iter =</span> <span class="dv">6000</span>, <span class="at">chains =</span> <span class="dv">8</span>, <span class="at">cores =</span> <span class="dv">8</span>, <span class="at">seed =</span> <span class="dv">123</span>, <span class="at">warmup =</span> <span class="dv">1000</span>,</span>
 <span id="cb6-5"><a href="#cb6-5" tabindex="-1"></a>             <span class="at">backend =</span> <span class="st">&quot;cmdstanr&quot;</span>, <span class="at">save_pars =</span> <span class="fu">save_pars</span>(<span class="at">all =</span> <span class="cn">TRUE</span>))</span>
 <span id="cb6-6"><a href="#cb6-6" tabindex="-1"></a></span>
 <span id="cb6-7"><a href="#cb6-7" tabindex="-1"></a><span class="co"># between-person composition only model</span></span>
-<span id="cb6-8"><a href="#cb6-8" tabindex="-1"></a>m1 <span class="ot">&lt;-</span> <span class="fu">brmcoda</span>(<span class="at">compilr =</span> cilr,</span>
+<span id="cb6-8"><a href="#cb6-8" tabindex="-1"></a>m1 <span class="ot">&lt;-</span> <span class="fu">brmcoda</span>(<span class="at">complr =</span> cilr,</span>
 <span id="cb6-9"><a href="#cb6-9" tabindex="-1"></a>             <span class="at">formula =</span> Stress <span class="sc">~</span> bilr1 <span class="sc">+</span> bilr2 <span class="sc">+</span> bilr3 <span class="sc">+</span> bilr4 <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> ID),</span>
 <span id="cb6-10"><a href="#cb6-10" tabindex="-1"></a>             <span class="at">iter =</span> <span class="dv">6000</span>, <span class="at">chains =</span> <span class="dv">8</span>, <span class="at">cores =</span> <span class="dv">8</span>, <span class="at">seed =</span> <span class="dv">123</span>, <span class="at">warmup =</span> <span class="dv">1000</span>,</span>
 <span id="cb6-11"><a href="#cb6-11" tabindex="-1"></a>             <span class="at">backend =</span> <span class="st">&quot;cmdstanr&quot;</span>, <span class="at">save_pars =</span> <span class="fu">save_pars</span>(<span class="at">all =</span> <span class="cn">TRUE</span>))</span>
 <span id="cb6-12"><a href="#cb6-12" tabindex="-1"></a></span>
 <span id="cb6-13"><a href="#cb6-13" tabindex="-1"></a><span class="co"># within-person composition only model</span></span>
-<span id="cb6-14"><a href="#cb6-14" tabindex="-1"></a>m2 <span class="ot">&lt;-</span> <span class="fu">brmcoda</span>(<span class="at">compilr =</span> cilr,</span>
+<span id="cb6-14"><a href="#cb6-14" tabindex="-1"></a>m2 <span class="ot">&lt;-</span> <span class="fu">brmcoda</span>(<span class="at">complr =</span> cilr,</span>
 <span id="cb6-15"><a href="#cb6-15" tabindex="-1"></a>             <span class="at">formula =</span> Stress <span class="sc">~</span> wilr1 <span class="sc">+</span> wilr2 <span class="sc">+</span> wilr3 <span class="sc">+</span> wilr4 <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> ID),</span>
 <span id="cb6-16"><a href="#cb6-16" tabindex="-1"></a>             <span class="at">iter =</span> <span class="dv">6000</span>, <span class="at">chains =</span> <span class="dv">8</span>, <span class="at">cores =</span> <span class="dv">8</span>, <span class="at">seed =</span> <span class="dv">123</span>, <span class="at">warmup =</span> <span class="dv">1000</span>,</span>
 <span id="cb6-17"><a href="#cb6-17" tabindex="-1"></a>             <span class="at">backend =</span> <span class="st">&quot;cmdstanr&quot;</span>, <span class="at">save_pars =</span> <span class="fu">save_pars</span>(<span class="at">all =</span> <span class="cn">TRUE</span>))</span>
 <span id="cb6-18"><a href="#cb6-18" tabindex="-1"></a></span>
 <span id="cb6-19"><a href="#cb6-19" tabindex="-1"></a><span class="co"># full model</span></span>
-<span id="cb6-20"><a href="#cb6-20" tabindex="-1"></a>m <span class="ot">&lt;-</span> <span class="fu">brmcoda</span>(<span class="at">compilr =</span> cilr,</span>
+<span id="cb6-20"><a href="#cb6-20" tabindex="-1"></a>m <span class="ot">&lt;-</span> <span class="fu">brmcoda</span>(<span class="at">complr =</span> cilr,</span>
 <span id="cb6-21"><a href="#cb6-21" tabindex="-1"></a>             <span class="at">formula =</span> Stress <span class="sc">~</span> bilr1 <span class="sc">+</span> bilr2 <span class="sc">+</span> bilr3 <span class="sc">+</span> bilr4 <span class="sc">+</span></span>
 <span id="cb6-22"><a href="#cb6-22" tabindex="-1"></a>               wilr1 <span class="sc">+</span> wilr2 <span class="sc">+</span> wilr3 <span class="sc">+</span> wilr4 <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> ID),</span>
 <span id="cb6-23"><a href="#cb6-23" tabindex="-1"></a>             <span class="at">iter =</span> <span class="dv">6000</span>, <span class="at">chains =</span> <span class="dv">8</span>, <span class="at">cores =</span> <span class="dv">8</span>, <span class="at">seed =</span> <span class="dv">123</span>, <span class="at">warmup =</span> <span class="dv">1000</span>,</span>
@@ -2183,14 +2199,15 @@ must be fitted with an additional non-default argument
 <p>We can now compare these models with the
 <code>bayesfactor_models()</code> function, using the intercept-only
 model as reference.</p>
-<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a>comparison <span class="ot">&lt;-</span> <span class="fu">bayesfactor_models</span>(m<span class="sc">$</span>Model, m1<span class="sc">$</span>Model, m2<span class="sc">$</span>Model, <span class="at">denominator =</span> m0<span class="sc">$</span>Model)</span></code></pre></div>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a>comparison <span class="ot">&lt;-</span> <span class="fu">bayesfactor_models</span>(m<span class="sc">$</span>model, m1<span class="sc">$</span>model, m2<span class="sc">$</span>model, <span class="at">denominator =</span> m0<span class="sc">$</span>model)</span>
+<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a><span class="co">#&gt; Error in `[.data.frame`(x, i, j, drop): undefined columns selected</span></span></code></pre></div>
 <div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a>comparison</span>
 <span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a><span class="co">#&gt; Bayes Factors for Model Comparison</span></span>
 <span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a><span class="co">#&gt; </span></span>
 <span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a><span class="co">#&gt;     Model                                                                       BF</span></span>
-<span id="cb8-5"><a href="#cb8-5" tabindex="-1"></a><span class="co">#&gt; [1] bilr1 + bilr2 + bilr3 + bilr4 + wilr1 + wilr2 + wilr3 + wilr4 + (1 | ID)  3.95</span></span>
-<span id="cb8-6"><a href="#cb8-6" tabindex="-1"></a><span class="co">#&gt; [2] bilr1 + bilr2 + bilr3 + bilr4 + (1 | ID)                                 0.325</span></span>
-<span id="cb8-7"><a href="#cb8-7" tabindex="-1"></a><span class="co">#&gt; [3] wilr1 + wilr2 + wilr3 + wilr4 + (1 | ID)                                 11.00</span></span>
+<span id="cb8-5"><a href="#cb8-5" tabindex="-1"></a><span class="co">#&gt; [1] bilr1 + bilr2 + bilr3 + bilr4 + wilr1 + wilr2 + wilr3 + wilr4 + (1 | ID)  3.45</span></span>
+<span id="cb8-6"><a href="#cb8-6" tabindex="-1"></a><span class="co">#&gt; [2] bilr1 + bilr2 + bilr3 + bilr4 + (1 | ID)                                 0.294</span></span>
+<span id="cb8-7"><a href="#cb8-7" tabindex="-1"></a><span class="co">#&gt; [3] wilr1 + wilr2 + wilr3 + wilr4 + (1 | ID)                                 11.63</span></span>
 <span id="cb8-8"><a href="#cb8-8" tabindex="-1"></a><span class="co">#&gt; </span></span>
 <span id="cb8-9"><a href="#cb8-9" tabindex="-1"></a><span class="co">#&gt; * Against Denominator: [4] 1 + (1 | ID)</span></span>
 <span id="cb8-10"><a href="#cb8-10" tabindex="-1"></a><span class="co">#&gt; *   Bayes Factor Type: marginal likelihoods (bridgesampling)</span></span></code></pre></div>
@@ -2202,9 +2219,9 @@ the null (intercept only).</p>
 <span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a><span class="co">#&gt; Bayes Factors for Model Comparison</span></span>
 <span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a><span class="co">#&gt; </span></span>
 <span id="cb9-4"><a href="#cb9-4" tabindex="-1"></a><span class="co">#&gt;     Model                                       BF</span></span>
-<span id="cb9-5"><a href="#cb9-5" tabindex="-1"></a><span class="co">#&gt; [2] bilr1 + bilr2 + bilr3 + bilr4 + (1 | ID) 0.082</span></span>
-<span id="cb9-6"><a href="#cb9-6" tabindex="-1"></a><span class="co">#&gt; [3] wilr1 + wilr2 + wilr3 + wilr4 + (1 | ID)  2.79</span></span>
-<span id="cb9-7"><a href="#cb9-7" tabindex="-1"></a><span class="co">#&gt; [4] 1 + (1 | ID)                             0.253</span></span>
+<span id="cb9-5"><a href="#cb9-5" tabindex="-1"></a><span class="co">#&gt; [2] bilr1 + bilr2 + bilr3 + bilr4 + (1 | ID) 0.085</span></span>
+<span id="cb9-6"><a href="#cb9-6" tabindex="-1"></a><span class="co">#&gt; [3] wilr1 + wilr2 + wilr3 + wilr4 + (1 | ID)  3.37</span></span>
+<span id="cb9-7"><a href="#cb9-7" tabindex="-1"></a><span class="co">#&gt; [4] 1 + (1 | ID)                             0.290</span></span>
 <span id="cb9-8"><a href="#cb9-8" tabindex="-1"></a><span class="co">#&gt; </span></span>
 <span id="cb9-9"><a href="#cb9-9" tabindex="-1"></a><span class="co">#&gt; * Against Denominator: [1] bilr1 + bilr2 + bilr3 + bilr4 + wilr1 + wilr2 + wilr3 + wilr4 + (1 | ID)</span></span>
 <span id="cb9-10"><a href="#cb9-10" tabindex="-1"></a><span class="co">#&gt; *   Bayes Factor Type: marginal likelihoods (bridgesampling)</span></span></code></pre></div>
@@ -2437,8 +2454,8 @@ given day.</p>
 substitution models</h2>
 <p>You can learn more about different types of substitution models
 at<br />
-<a href="https://florale.github.io/multilevelcoda/articles/substitution-model.html">Compositional
-Multilevel Substitution Models</a>.</p>
+<a href="https://florale.github.io/multilevelcoda/articles/D-substitution.html">Compositional
+Multilevel Substitution Analysis</a>.</p>
 </div>
 </div>
 

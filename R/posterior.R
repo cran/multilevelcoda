@@ -12,9 +12,12 @@
 #' @aliases predict
 #' 
 #' @param object An object of class \code{brmcoda}.
-#' @param acomp Should the
-#' results be returned on the compositional scale of the response variable?
-#' Only applicable for models with compositional response
+#' @param scale Specifically for models with compositional responses,
+#' either \code{"response"} or \code{"linear"}.
+#' If \code{"linear"},
+#' results are returned on the log-ratio scale.
+#' If \code{"response"}, results are returned on the compositional scale
+#' of the response variable.
 #' @param ... Further arguments passed to \code{\link{predict.brmsfit}}
 #' that control additional aspects of prediction.
 #' @inheritParams brms::predict.brmsfit
@@ -33,11 +36,11 @@
 #' \donttest{
 #' if(requireNamespace("cmdstanr")){
 #'   ## fit a model
-#'   cilr <- compilr(data = mcompd, sbp = sbp,
-#'                   parts = c("TST", "WAKE", "MVPA", "LPA", "SB"),
-#'                   idvar = "ID", total = 1440)
+#'   cilr <- complr(data = mcompd, sbp = sbp,
+#'                  parts = c("TST", "WAKE", "MVPA", "LPA", "SB"),
+#'                  idvar = "ID", total = 1440)
 #'   
-#'   m1 <- brmcoda(compilr = cilr,
+#'   m1 <- brmcoda(complr = cilr,
 #'                 formula = Stress ~ bilr1 + bilr2 + bilr3 + bilr4 +
 #'                   wilr1 + wilr2 + wilr3 + wilr4 + (1 | ID),
 #'                 chain = 1, iter = 500,
@@ -48,43 +51,45 @@
 #'   head(pred)
 #'   
 #'   ## fit a model with compositional outcome
-#'   m2 <- brmcoda(compilr = cilr,
+#'   m2 <- brmcoda(complr = cilr,
 #'                 formula = mvbind(ilr1, ilr2, ilr3, ilr4) ~ Stress + Female + (1 | ID),
 #'                 chain = 1, iter = 500,
 #'                 backend = "cmdstanr")
 #'   
 #'   ## predicted responses on compositional scale
-#'   predcomp <- predict(m2, acomp = TRUE)
+#'   predcomp <- predict(m2, scale = "linear")
 #'   head(predcomp)
 #' }}
 #' @export
 predict.brmcoda <- function(object,
-                            acomp = FALSE,
+                            scale = c("linear", "response"),
                             summary = TRUE,
                             ...) {
   
-  if (isFALSE(acomp)) {
-    out <- predict(
-      object$Model,
-      summary = summary,
-      ...
-    )
-  } else {
-    if (isFALSE(inherits(object$Model$formula, "mvbrmsformula"))) {
-      stop(sprintf(
-        "This is a %s model, but a model of class mvbrmsformula is required to
-  return results on compsitional scale.",
-  class(object$Model$formula)[1]))
+  if (inherits(object$model$formula, "mvbrmsformula")) {
+    if ((length(grep("ilr", object$model$formula$responses, value = T)) > 0)) {
+      if (scale == "linear") {
+      warning(sprintf(
+        "This is a mvbrmsformula model, it is recommended to
+  set scale = \"response\" to return results on compsitional scale."))
       
-    } else {
       out <- predict(
-        object$Model,
+        object$model,
+        scale = scale,
+        summary = summary,
+        ...
+      )
+    }
+    if (scale == "response") {
+      out <- predict(
+        object$model,
         summary = FALSE,
+        scale = "response",
         ...
       )
       out <- lapply(asplit(out, 1), function(x) {
-        x <- compositions::ilrInv(x, V = gsi.buildilrBase(t(object$CompILR$sbp)))
-        as.data.table(clo(x, total = object$CompILR$total))
+        x <- compositions::ilrInv(x, V = gsi.buildilrBase(t(object$complr$sbp)))
+        as.data.table(clo(x, total = object$complr$total))
       })
       
       out <- brms::do_call(abind::abind, c(out, along = 3))
@@ -92,9 +97,16 @@ predict.brmcoda <- function(object,
       
       if(isTRUE(summary)) {
         out <- brms::posterior_summary(out)
-        dimnames(out)[[3]] <- object$CompILR$parts
+        dimnames(out)[[3]] <- object$complr$parts
       }
     }
+  }} else {
+    out <- predict(
+      object$model,
+      scale = scale,
+      summary = summary,
+      ...
+    )
   }
   out
 }
@@ -133,12 +145,12 @@ predict.brmcoda <- function(object,
 #' ## fit a model
 #' if(requireNamespace("cmdstanr")){
 #'   ## compute composition and ilr coordinates
-#'   cilr <- compilr(data = mcompd, sbp = sbp,
-#'                   parts = c("TST", "WAKE", "MVPA", "LPA", "SB"),
-#'                   idvar = "ID", total = 1440)
+#'   cilr <- complr(data = mcompd, sbp = sbp,
+#'                  parts = c("TST", "WAKE", "MVPA", "LPA", "SB"),
+#'                  idvar = "ID", total = 1440)
 #'   
 #'   ## fit a model
-#'   m1 <- brmcoda(compilr = cilr,
+#'   m1 <- brmcoda(complr = cilr,
 #'                 formula = Stress ~ bilr1 + bilr2 + bilr3 + bilr4 +
 #'                   wilr1 + wilr2 + wilr3 + wilr4 + (1 | ID),
 #'                 chain = 1, iter = 500,
@@ -149,54 +161,63 @@ predict.brmcoda <- function(object,
 #'   head(epred)
 #'   
 #'   ## fit a model with compositional outcome
-#'   m2 <- brmcoda(compilr = cilr,
+#'   m2 <- brmcoda(complr = cilr,
 #'                 formula = mvbind(ilr1, ilr2, ilr3, ilr4) ~ Stress + Female + (1 | ID),
 #'                 chain = 1, iter = 500,
 #'                 backend = "cmdstanr")
 #'   
 #'   ## expected predictions on compositional scale
-#'   epredcomp <- fitted(m2, acomp = TRUE)
+#'   epredcomp <- fitted(m2, scale = "response")
 #'   head(epredcomp)
 #' }}
 #' @export
 fitted.brmcoda <- function(object,
-                           acomp = FALSE,
+                           scale = c("linear", "response"),
                            summary = TRUE,
                            ...) {
   
-  if (isFALSE(acomp)) {
-    out <- fitted(
-      object$Model,
-      summary = summary,
-      ...
-    )
-  } else {
-    if (isFALSE(inherits(object$Model$formula, "mvbrmsformula"))) {
-      stop(sprintf(
-        "This is a %s model, but a model of class mvbrmsformula is required to
-  return results on compsitional scale.",
-  class(object$Model$formula)[1]))
-      
-    } else {
+  if (inherits(object$model$formula, "mvbrmsformula")) {
+    if ((length(grep("ilr", object$model$formula$responses, value = T)) > 0)) {
+      if (scale == "linear") {
+        warning(sprintf(
+          "This is a mvbrmsformula model, it is recommended to
+  set scale = \"response\" to return results on compsitional scale."))
+        
+        out <- fitted(
+          object$model,
+          scale = scale,
+          summary = summary,
+          ...
+        )
+      }
+      if (scale == "response") {
+        out <- fitted(
+          object$model,
+          summary = FALSE,
+          scale = "response",
+          ...
+        )
+        out <- lapply(asplit(out, 1), function(x) {
+          x <- compositions::ilrInv(x, V = gsi.buildilrBase(t(object$complr$sbp)))
+          as.data.table(clo(x, total = object$complr$total))
+        })
+        
+        out <- brms::do_call(abind::abind, c(out, along = 3))
+        out <- aperm(out, c(3, 1, 2)) #draw-row-col
+        
+        if(isTRUE(summary)) {
+          out <- brms::posterior_summary(out)
+          dimnames(out)[[3]] <- object$complr$parts
+        }
+      }
+    }} else {
       out <- fitted(
-        object$Model,
-        summary = FALSE,
+        object$model,
+        scale = scale,
+        summary = summary,
         ...
       )
-      out <- lapply(asplit(out, 1), function(x) {
-        x <- compositions::ilrInv(x, V = gsi.buildilrBase(t(object$CompILR$sbp)))
-        as.data.table(clo(x, total = object$CompILR$total))
-      })
-      
-      out <- brms::do_call(abind::abind, c(out, along = 3))
-      out <- aperm(out, c(3, 1, 2)) #draw-row-col
-      
-      if(isTRUE(summary)) {
-        out <- brms::posterior_summary(out)
-        dimnames(out)[[3]] <- object$CompILR$parts
-      }
     }
-  }
   out
 }
 
@@ -222,9 +243,9 @@ fitted.brmcoda <- function(object,
 #' ## fit a model
 #' if(requireNamespace("cmdstanr")){
 #'   ## fit a model
-#'   m <- brmcoda(compilr = compilr(data = mcompd, sbp = sbp,
-#'                                  parts = c("TST", "WAKE", "MVPA", "LPA", "SB"),
-#'                                  idvar = "ID", total = 1440),
+#'   m <- brmcoda(complr = complr(data = mcompd, sbp = sbp,
+#'                                parts = c("TST", "WAKE", "MVPA", "LPA", "SB"),
+#'                                idvar = "ID", total = 1440),
 #'   formula = Stress ~ bilr1 + bilr2 + bilr3 + bilr4 +
 #'     wilr1 + wilr2 + wilr3 + wilr4 + (1 | ID),
 #'   chain = 1, iter = 500,
@@ -236,7 +257,7 @@ fitted.brmcoda <- function(object,
 #' @export fixef
 #' @export
 fixef.brmcoda <- function(object, ...) {
-  fixef(object$Model, ...)
+  fixef(object$model, ...)
 }
 
 #' Covariance and Correlation Matrix of Population-Level Effects
@@ -259,9 +280,9 @@ fixef.brmcoda <- function(object, ...) {
 #' \donttest{
 #' ## fit a model
 #' if(requireNamespace("cmdstanr")){
-#'   m <- brmcoda(compilr = compilr(data = mcompd, sbp = sbp,
-#'                                  parts = c("TST", "WAKE", "MVPA", "LPA", "SB"),
-#'                                  idvar = "ID", total = 1440),
+#'   m <- brmcoda(complr = complr(data = mcompd, sbp = sbp,
+#'                                parts = c("TST", "WAKE", "MVPA", "LPA", "SB"),
+#'                                idvar = "ID", total = 1440),
 #'   formula = Stress ~ bilr1 + bilr2 + bilr3 + bilr4 +
 #'     wilr1 + wilr2 + wilr3 + wilr4 + (1 | ID),
 #'   chain = 1, iter = 500,
@@ -271,7 +292,7 @@ fixef.brmcoda <- function(object, ...) {
 #' }}
 #' @export
 vcov.brmcoda <- function(object, ...) {
-  vcov(object$Model, ...)
+  vcov(object$model, ...)
 }
 
 #' Group-Level Estimates
@@ -295,9 +316,9 @@ vcov.brmcoda <- function(object, ...) {
 #' \donttest{
 #' ## fit a model
 #' if(requireNamespace("cmdstanr")){
-#'   m <- brmcoda(compilr = compilr(data = mcompd, sbp = sbp,
-#'                                  parts = c("TST", "WAKE", "MVPA", "LPA", "SB"),
-#'                                  idvar = "ID", total = 1440),
+#'   m <- brmcoda(complr = complr(data = mcompd, sbp = sbp,
+#'                                parts = c("TST", "WAKE", "MVPA", "LPA", "SB"),
+#'                                idvar = "ID", total = 1440),
 #'   formula = Stress ~ bilr1 + bilr2 + bilr3 + bilr4 +
 #'     wilr1 + wilr2 + wilr3 + wilr4 + (1 | ID),
 #'   chain = 1, iter = 500,
@@ -309,7 +330,7 @@ vcov.brmcoda <- function(object, ...) {
 #' @export ranef
 #' @export
 ranef.brmcoda <- function(object, ...) {
-  ranef(object$Model, ...)
+  ranef(object$model, ...)
 }
 
 #' Model Coefficients
@@ -334,9 +355,9 @@ ranef.brmcoda <- function(object, ...) {
 #' \donttest{
 #' ## fit a model
 #' if(requireNamespace("cmdstanr")){
-#'   m <- brmcoda(compilr = compilr(data = mcompd, sbp = sbp,
-#'                                  parts = c("TST", "WAKE", "MVPA", "LPA", "SB"),
-#'                                  idvar = "ID", total = 1440),
+#'   m <- brmcoda(complr = complr(data = mcompd, sbp = sbp,
+#'                                parts = c("TST", "WAKE", "MVPA", "LPA", "SB"),
+#'                                idvar = "ID", total = 1440),
 #'   formula = Stress ~ bilr1 + bilr2 + bilr3 + bilr4 +
 #'     wilr1 + wilr2 + wilr3 + wilr4 + (1 | ID),
 #'   chain = 1, iter = 500,
@@ -351,7 +372,7 @@ ranef.brmcoda <- function(object, ...) {
 #' }}
 #' @export
 coef.brmcoda <- function(object, ...) {
-  coef(object$Model, ...)
+  coef(object$model, ...)
 }
 
 #' Extract Variance and Correlation Components
@@ -376,9 +397,9 @@ coef.brmcoda <- function(object, ...) {
 #' \donttest{
 #' ## fit a model
 #' if(requireNamespace("cmdstanr")){
-#'   m <- brmcoda(compilr = compilr(data = mcompd, sbp = sbp,
-#'                                  parts = c("TST", "WAKE", "MVPA", "LPA", "SB"),
-#'                                  idvar = "ID", total = 1440),
+#'   m <- brmcoda(complr = complr(data = mcompd, sbp = sbp,
+#'                                parts = c("TST", "WAKE", "MVPA", "LPA", "SB"),
+#'                                idvar = "ID", total = 1440),
 #'   formula = Stress ~ bilr1 + bilr2 + bilr3 + bilr4 +
 #'     wilr1 + wilr2 + wilr3 + wilr4 + (1 | ID),
 #'   chain = 1, iter = 500,
@@ -389,7 +410,7 @@ coef.brmcoda <- function(object, ...) {
 #' @export VarCorr
 #' @export
 VarCorr.brmcoda <- function(x, ...) {
-  VarCorr(x$Model, ...)
+  VarCorr(x$model, ...)
 }
 
 #' Posterior Draws of Residuals/Predictive Errors
@@ -409,9 +430,9 @@ VarCorr.brmcoda <- function(x, ...) {
 #' \donttest{
 #' ## fit a model
 #' if(requireNamespace("cmdstanr")){
-#'   m <- brmcoda(compilr = compilr(data = mcompd, sbp = sbp,
-#'                                  parts = c("TST", "WAKE", "MVPA", "LPA", "SB"),
-#'                                  idvar = "ID", total = 1440),
+#'   m <- brmcoda(complr = complr(data = mcompd, sbp = sbp,
+#'                                parts = c("TST", "WAKE", "MVPA", "LPA", "SB"),
+#'                                idvar = "ID", total = 1440),
 #'   formula = Stress ~ bilr1 + bilr2 + bilr3 + bilr4 +
 #'     wilr1 + wilr2 + wilr3 + wilr4 + (1 | ID),
 #'   chain = 1, iter = 500,
@@ -423,7 +444,7 @@ VarCorr.brmcoda <- function(x, ...) {
 #' }}
 #' @export
 residuals.brmcoda <- function(object, ...) {
-  residuals(object$Model, ...)
+  residuals(object$model, ...)
 }
 
 #' Efficient approximate leave-one-out cross-validation (LOO)
@@ -444,5 +465,5 @@ residuals.brmcoda <- function(object, ...) {
 #' @method loo brmcoda
 #' @export
 loo.brmcoda <- function(x, ...) {
-  loo(x$Model, ...)
+  loo(x$model, ...)
 }

@@ -2,7 +2,7 @@
 % Please edit documentation in R/substitution.R
 \name{substitution}
 \alias{substitution}
-\title{Multilevel Compositional Substitution Model}
+\title{Multilevel Compositional Substitution Analysis}
 \usage{
 substitution(
   object,
@@ -10,8 +10,10 @@ substitution(
   basesub = NULL,
   summary = TRUE,
   ref = c("grandmean", "clustermean"),
-  level = c("between", "within"),
+  level = c("between", "within", "aggregate"),
   weight = c("equal", "proportional"),
+  scale = c("response", "linear"),
+  cores = NULL,
   ...
 )
 }
@@ -35,28 +37,40 @@ the isometric log-ratio coordinates (i.e., adjusted model).}
 Can be \code{"grandmean"} and/or \code{"clustermean"}, or
 a \code{data.frame} or \code{data.table} of user's specified reference grid consisting
 of combinations of covariates over which predictions are made.
-User's specified reference grid is only possible for simple substitution.}
+User's specified reference grid is only possible for simple substitution.
+Single level models are default to \code{"grandmean"}.}
 
 \item{level}{A character string or vector.
-Should the estimate be at the \code{"between"} and/or \code{"within"} level?}
+Should the estimate of multilevel models focus on the \code{"between"} and/or \code{"within"} or \code{"aggregate"} variance?
+Single-level models are default to \code{"aggregate"}.}
 
 \item{weight}{A character value specifying the weight to use in calculation of the reference composition.
 If \code{"equal"}, give equal weight to units (e.g., individuals).
 If \code{"proportional"}, weights in proportion to the frequencies of units being averaged
-(e.g., observations across individuals)
-Default is \code{equal}.}
+(e.g., observations across individuals).
+Default to \code{"equal"} for \code{ref = "grandmean"} and \code{"proportional"} for \code{ref = "clustermean"}.}
+
+\item{scale}{Either \code{"response"} or \code{"linear"}.
+If \code{"response"}, results are returned on the scale of the response variable.
+If \code{"linear"}, results are returned on the scale of the linear predictor term,
+that is without applying the inverse link function or other transformations.}
+
+\item{cores}{Number of cores to use when executing the chains in parallel,
+we recommend setting the \code{mc.cores} option
+to be as many processors as the hardware and RAM allow (up to the number of compositional parts).
+For non-Windows OS in non-interactive R sessions, forking is used instead of PSOCK clusters.}
 
 \item{...}{Additional arguments passed to \code{\link{describe_posterior}}.}
 }
 \value{
 A list containing the results of multilevel compositional substitution model.
-The first four lists contain the results of the substitution estimation for a compositional part.
+The first six lists contain the results of the substitution estimation for a compositional part.
 \item{\code{Mean}}{ Posterior means.}
 \item{\code{CI_low} and \code{CI_high}}{ 95\% credible intervals.}
 \item{\code{Delta}}{ Amount substituted across compositional parts.}
 \item{\code{From}}{ Compositional part that is substituted from.}
 \item{\code{To}}{ Compositional parts that is substituted to.}
-\item{\code{Level}}{ Level where changes in composition takes place. Either \code{between} or \code{within}.}
+\item{\code{Level}}{ Level where changes in composition takes place.}
 \item{\code{Reference}}{ Either \code{grandmean}, \code{clustermean}, or \code{users}.}
 }
 \description{
@@ -69,16 +83,22 @@ present in the \code{\link{brmcoda}} object.
 \examples{
 \donttest{
 if(requireNamespace("cmdstanr")){
-  cilr <- compilr(data = mcompd, sbp = sbp,
-                  parts = c("TST", "WAKE", "MVPA", "LPA", "SB"),
-                  idvar = "ID", total = 1440)
-  
-  # model with compositional predictor at between and between-person levels
-  m <- brmcoda(compilr = cilr,
-               formula = Stress ~ bilr1 + bilr2 + bilr3 + bilr4 +
-                 wilr1 + wilr2 + wilr3 + wilr4 + (1 | ID),
-               chain = 1, iter = 500, backend = "cmdstanr")
-  
-  subm <- substitution(object = m, delta = 5)
+  cilr <- complr(data = mcompd, sbp = sbp,
+                 parts = c("TST", "WAKE", "MVPA", "LPA", "SB"),
+                 idvar = "ID", total = 1440)
+
+  # model with compositional predictor at between and between-person levels of variance
+  fit1 <- brmcoda(complr = cilr,
+                  formula = Stress ~ bilr1 + bilr2 + bilr3 + bilr4 +
+                                     wilr1 + wilr2 + wilr3 + wilr4 + (1 | ID),
+                  chain = 1, iter = 500, backend = "cmdstanr")
+  sub1 <- substitution(object = fit1, delta = 5, level = c("between", "within"))
+
+  # model with compositional predictor at aggregate level of variance
+  fit2 <- brmcoda(complr = cilr,
+                  formula = Stress ~ ilr1 + ilr2 + ilr3 + ilr4 + (1 | ID),
+                  chain = 1, iter = 500, backend = "cmdstanr")
+  sub2 <- substitution(object = fit2, delta = 5, level = c("aggregate"))
+
 }}
 }

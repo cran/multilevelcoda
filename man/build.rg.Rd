@@ -4,7 +4,7 @@
 \alias{build.rg}
 \title{Reference Grid for \code{substitution} model.}
 \usage{
-build.rg(object, ref, weight, fill = FALSE)
+build.rg(object, ref, level, weight, factors = "all", fill = FALSE)
 }
 \arguments{
 \item{object}{A fitted \code{\link{brmcoda}} object.}
@@ -13,24 +13,31 @@ build.rg(object, ref, weight, fill = FALSE)
 Can be \code{"grandmean"} and/or \code{"clustermean"}, or
 a \code{data.frame} or \code{data.table} of user's specified reference grid consisting
 of combinations of covariates over which predictions are made.
-User's specified reference grid only applicable to substitution model
-using a single reference composition value.}
+User's specified reference grid is only possible for simple substitution.
+Single level models are default to \code{"grandmean"}.}
+
+\item{level}{A character string or vector.
+Should the estimate of multilevel models focus on the \code{"between"} and/or \code{"within"} or \code{"aggregate"} variance?
+Single-level models are default to \code{"aggregate"}.}
 
 \item{weight}{A character value specifying the weight to use in calculation of the reference composition.
 If \code{"equal"}, give equal weight to units (e.g., individuals).
 If \code{"proportional"}, weights in proportion to the frequencies of units being averaged
-(e.g., observations across individuals)
-Default is \code{equal}.}
+(e.g., observations across individuals).
+Default to \code{"equal"} for \code{ref = "grandmean"} and \code{"proportional"} for \code{ref = "clustermean"}.}
+
+\item{factors}{Type of summary for factors. Can be \code{"reference"} (set at the reference level),
+\code{"mode"} (set at the most common level) or \code{"all"} to keep all levels.}
 
 \item{fill}{Logical value only relevant when \code{ref} is an user's specified reference grid
 in which information about some, but not all covariates is provided
 (e.g., models including age and sex as covariate but only age was provided in the reference grid).
 If \code{TRUE}, the unspecified covariates are filled with the default reference grid.
 If \code{FALSE}, users will be asked to provide a full reference grid.
-Default is \code{FALSE}.}
+Currently only support the default to \code{FALSE}.}
 }
 \value{
-A reference grid consisting of a combination of covariates in \code{brmcoda}.
+A reference grid consisting of a combination of covariates in \code{brmcoda}
 }
 \description{
 Build a dataset for \code{fitted.brmcoda} used in \code{substitution} model

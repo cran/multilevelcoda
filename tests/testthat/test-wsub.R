@@ -19,17 +19,17 @@ library(extraoperators)
 library(brms)
 library(lme4)
 
-# Model
+# model
 #---------------------------------------------------------------------------------------------------
 data(mcompd)
 data(sbp)
 data(psub)
 
-cilr <- compilr(data = mcompd[ID %in% 1:10, .SD[1:3], by = ID], sbp = sbp,
-                parts = c("TST", "WAKE", "MVPA", "LPA", "SB"), idvar = "ID", total = 1440)
+cilr <- complr(data = mcompd[ID %in% 1:10, .SD[1:3], by = ID], sbp = sbp,
+               parts = c("TST", "WAKE", "MVPA", "LPA", "SB"), idvar = "ID", total = 1440)
 
 suppressWarnings(
-  m <- brmcoda(compilr = cilr,
+  m <- brmcoda(complr = cilr,
                formula = Stress ~ bilr1 + bilr2 + bilr3 + bilr4 +
                  wilr1 + wilr2 + wilr3 + wilr4 + Female + (1 | ID),
                chain = 1, iter = 500, seed = 123,
@@ -74,7 +74,7 @@ x <- wsub(object = m, basesub = psub, delta = 2)
 #   
 #   ## reference grid is provided for unadjusted model
 #   suppressWarnings(
-#     m2 <- brmcoda(compilr = cilr,
+#     m2 <- brmcoda(complr = cilr,
 #                   formula = Stress ~ bilr1 + bilr2 + bilr3 + bilr4 +
 #                     wilr1 + wilr2 + wilr3 + wilr4 + (1 | ID),
 #                   chain = 1, iter = 500, seed = 123,
@@ -132,11 +132,11 @@ x <- wsub(object = m, basesub = psub, delta = 2)
 #   expect_equal(x4, x5)
 #   
 #   ## keep prediction at each level of refrence grid 
-#   cilr <- compilr(data = mcompd[ID %in% c(1:5, 185:190), .SD[1:3], by = ID], sbp = sbp,
+#   cilr <- complr(data = mcompd[ID %in% c(1:5, 185:190), .SD[1:3], by = ID], sbp = sbp,
 #                   parts = c("TST", "WAKE", "MVPA", "LPA", "SB"), idvar = "ID", total = 1440)
 #   
 #   suppressWarnings(
-#     m <- brmcoda(compilr = cilr,
+#     m <- brmcoda(complr = cilr,
 #                  formula = Stress ~ bilr1 + bilr2 + bilr3 + bilr4 +
 #                    wilr1 + wilr2 + wilr3 + wilr4 + Female + (1 | ID),
 #                  chain = 1, iter = 500, seed = 123,
@@ -192,7 +192,7 @@ test_that("wsub outputs what expected", {
   
   ## types
   expect_type(x, "list")
-  expect_equal(length(x), length(m$CompILR$parts))
+  expect_equal(length(x), length(m$complr$parts))
   expect_s3_class(x$TST, "data.table")
   expect_s3_class(x$WAKE, "data.table")
   expect_s3_class(x$MVPA, "data.table")
@@ -304,10 +304,10 @@ test_that("wsub gives results in expected direction and magnitude", {
 #   0, 0, -1, -1, 1,
 #   0, 0, 1, -1, 0), ncol = 5, byrow = TRUE)
 # 
-# cilr <- compilr(data = mcompd, sbp = sbp,
+# cilr <- complr(data = mcompd, sbp = sbp,
 #                 parts = c("TST", "WAKE", "MVPA", "LPA", "SB"), idvar = "ID", total = 1440)
 # 
-# suppressWarnings(m <- brmcoda(compilr = cilr,
+# suppressWarnings(m <- brmcoda(complr = cilr,
 #                               formula = Stress ~ bilr1 + bilr2 + bilr3 + bilr4 +
 #                                 wilr1 + wilr2 + wilr3 + wilr4 + Female + (1 | ID),
 #                               seed = 123))
@@ -317,7 +317,7 @@ test_that("wsub gives results in expected direction and magnitude", {
 # test_that("wsub's estimates matches with brm model's (TST vs WAKE and MVPA vs LPA)", {
 #   
 #   ## Estimates
-#   if (isTRUE(suppressWarnings(summary(m$Model)$fixed[7, 1] > 0))) { # wilr2 = more TST less WAKE
+#   if (isTRUE(suppressWarnings(summary(m$model)$fixed[7, 1] > 0))) { # wilr2 = more TST less WAKE
 #     expect_true(all(a$TST[From == "WAKE" & Delta > 1]$Mean > 0)) # more TST less WAKE
 #     expect_true(all(a$WAKE[From == "TST" & Delta > 1]$Mean < 0)) # more WAKE less TST
 #     
@@ -327,7 +327,7 @@ test_that("wsub gives results in expected direction and magnitude", {
 #     
 #   }
 #   
-#   if (isTRUE(suppressWarnings(summary(m$Model)$fixed[9, 1] > 0))) { # wilr4 = more MVPA less LPA
+#   if (isTRUE(suppressWarnings(summary(m$model)$fixed[9, 1] > 0))) { # wilr4 = more MVPA less LPA
 #     expect_true(all(a$MVPA[From == "LPA" & Delta > 1]$Mean > 0)) # more MVPA less LPA
 #     expect_true(all(a$LPA[From == "MVPA" & Delta > 1]$Mean < 0)) # more LPA less MVPA
 #     
@@ -337,12 +337,12 @@ test_that("wsub gives results in expected direction and magnitude", {
 #   }
 #   
 #   suppressWarnings(expect_true(
-#     (0 %gele% c(summary(m$Model)$fixed[7, 3], summary(m$Model)$fixed[7, 4]))
+#     (0 %gele% c(summary(m$model)$fixed[7, 3], summary(m$model)$fixed[7, 4]))
 #     == (0 %agele% c(a$TST[From == "WAKE" & Delta == 1]$CI_low,
 #                     a$TST[From == "WAKE" & Delta == 1]$CI_high))))
 #   
 #   suppressWarnings(expect_true(
-#     (0 %gele% c(summary(m$Model)$fixed[9, 3], summary(m$Model)$fixed[9, 4]))
+#     (0 %gele% c(summary(m$model)$fixed[9, 3], summary(m$model)$fixed[9, 4]))
 #     == (0 %agele% c(a$MVPA[From == "LPA" & Delta == 1]$CI_low,
 #                     a$MVPA[From == "LPA" & Delta == 1]$CI_high))))
 #   
@@ -354,10 +354,10 @@ test_that("wsub gives results in expected direction and magnitude", {
 #   0, 1, 0, -1, -1,
 #   0, 0, 0, 1, -1), ncol = 5, byrow = TRUE)
 # 
-# cilr <- compilr(data = mcompd, sbp = sbp,
+# cilr <- complr(data = mcompd, sbp = sbp,
 #                 parts = c("TST", "WAKE", "MVPA", "LPA", "SB"), idvar = "ID", total = 1440)
 # 
-# suppressWarnings(m <- brmcoda(compilr = cilr,
+# suppressWarnings(m <- brmcoda(complr = cilr,
 #                               formula = Stress ~ bilr1 + bilr2 + bilr3 + bilr4 +
 #                                 wilr1 + wilr2 + wilr3 + wilr4 + Female + (1 | ID),
 #                               seed = 123))
@@ -367,7 +367,7 @@ test_that("wsub gives results in expected direction and magnitude", {
 # test_that("wsub's results matches with brm model (TST vs MVPA and LPA vs SB)", { 
 #   
 #   ## Estimates
-#   if (isTRUE(suppressWarnings(summary(m$Model)$fixed[7, 1] > 0))) { # wilr2 = more TST less MVPA
+#   if (isTRUE(suppressWarnings(summary(m$model)$fixed[7, 1] > 0))) { # wilr2 = more TST less MVPA
 #     expect_true(all(s$TST[From == "MVPA" & Delta > 1]$Mean > 0)) # more TST less MVPA
 #     expect_true(all(s$MVPA[From == "TST" & Delta > 1]$Mean < 0)) # more MVPA less TST
 #   } else {
@@ -375,7 +375,7 @@ test_that("wsub gives results in expected direction and magnitude", {
 #     expect_true(all(s$MVPA[From == "TST" & Delta > 1]$Mean > 0))
 #   }
 #   
-#   if (isTRUE(suppressWarnings(summary(m$Model)$fixed[9, 1] > 0))) { # wilr4 = more LPA less SB
+#   if (isTRUE(suppressWarnings(summary(m$model)$fixed[9, 1] > 0))) { # wilr4 = more LPA less SB
 #     expect_true(all(s$LPA[From == "SB" & Delta > 1]$Mean > 0)) # more LPA less SB
 #     expect_true(all(s$SB[From == "LPA" & Delta > 1]$Mean < 0)) # more SB less LPA
 #   } else {
@@ -385,12 +385,12 @@ test_that("wsub gives results in expected direction and magnitude", {
 #   
 #   # CIs
 #   suppressWarnings(expect_true(
-#     (0 %gele% c(summary(m$Model)$fixed[7, 3], summary(m$Model)$fixed[7, 4]))
+#     (0 %gele% c(summary(m$model)$fixed[7, 3], summary(m$model)$fixed[7, 4]))
 #     == (0 %agele% c(s$TST[From == "MVPA" & Delta == 1]$CI_low,
 #                     s$TST[From == "MVPA" & Delta == 1]$CI_high))))
 #   
 #   suppressWarnings(expect_true(
-#     (0 %gele% c(summary(m$Model)$fixed[9, 3], summary(m$Model)$fixed[9, 4]))
+#     (0 %gele% c(summary(m$model)$fixed[9, 3], summary(m$model)$fixed[9, 4]))
 #     == (0 %agele% c(s$LPA[From == "SB" & Delta == 1]$CI_low,
 #                     s$LPA[From == "SB" & Delta == 1]$CI_high))))
 #   
@@ -402,10 +402,10 @@ test_that("wsub gives results in expected direction and magnitude", {
 #   0, -1, 1, 0, -1,
 #   0, 1, 0, 0, -1), ncol = 5, byrow = TRUE)
 # 
-# cilr <- compilr(data = mcompd[ID %in% 1:10, .SD[1:3], by = ID], sbp = sbp,
+# cilr <- complr(data = mcompd[ID %in% 1:10, .SD[1:3], by = ID], sbp = sbp,
 #                 parts = c("TST", "WAKE", "MVPA", "LPA", "SB"), idvar = "ID", total = 1440)
 # 
-# suppressWarnings(m <- brmcoda(compilr = cilr,
+# suppressWarnings(m <- brmcoda(complr = cilr,
 #                               formula = Stress ~ bilr1 + bilr2 + bilr3 + bilr4 +
 #                                 wilr1 + wilr2 + wilr3 + wilr4 + Female + (1 | ID),
 #                               chain = 1, iter = 500, seed = 123))
@@ -415,7 +415,7 @@ test_that("wsub gives results in expected direction and magnitude", {
 # test_that("wsub's results matches with brm model (TST vs LPA and WAKE vs SB)", {
 #   
 #   ## Estimates
-#   if (isTRUE(suppressWarnings(summary(m$Model)$fixed[7, 1] > 0))) { # bilr2 = more TST less LPA
+#   if (isTRUE(suppressWarnings(summary(m$model)$fixed[7, 1] > 0))) { # bilr2 = more TST less LPA
 #     expect_true(all(d$TST[From == "LPA" & Delta > 1]$Mean > 0)) # more TST less LPA
 #     expect_true(all(d$LPA[From == "TST" & Delta > 1]$Mean < 0)) # more LPA less TST
 #   } else {
@@ -423,7 +423,7 @@ test_that("wsub gives results in expected direction and magnitude", {
 #     expect_true(all(d$LPA[From == "TST" & Delta > 1]$Mean > 0))
 #   }
 #   
-#   if (isTRUE(suppressWarnings(summary(m$Model)$fixed[9, 1] > 0))) { # bilr4 = more WAKE less SB
+#   if (isTRUE(suppressWarnings(summary(m$model)$fixed[9, 1] > 0))) { # bilr4 = more WAKE less SB
 #     expect_true(all(d$WAKE[From == "SB" & Delta > 1]$Mean > 0)) # more WAKE less SB
 #     expect_true(all(d$SB[From == "WAKE" & Delta > 1]$Mean < 0)) # more SB less WAKE
 #   } else {
@@ -433,12 +433,12 @@ test_that("wsub gives results in expected direction and magnitude", {
 #   
 #   # CIs
 #   suppressWarnings(expect_true(
-#     (0 %gele% c(summary(m$Model)$fixed[7, 3], summary(m$Model)$fixed[7, 4]))
+#     (0 %gele% c(summary(m$model)$fixed[7, 3], summary(m$model)$fixed[7, 4]))
 #     == (0 %agele% c(d$TST[From == "LPA" & Delta == 1]$CI_low,
 #                     d$TST[From == "LPA" & Delta == 1]$CI_high))))
 #   
 #   suppressWarnings(expect_true(
-#     (0 %gele% c(summary(m$Model)$fixed[9, 3], summary(m$Model)$fixed[9, 4]))
+#     (0 %gele% c(summary(m$model)$fixed[9, 3], summary(m$model)$fixed[9, 4]))
 #     == (0 %agele% c(d$WAKE[From == "SB" & Delta == 1]$CI_low,
 #                     d$WAKE[From == "SB" & Delta == 1]$CI_high))))
 #   
@@ -450,10 +450,10 @@ test_that("wsub gives results in expected direction and magnitude", {
 #   0, -1, -1, 1, 0,
 #   0, 1, -1, 0, 0), ncol = 5, byrow = TRUE)
 # 
-# cilr <- compilr(data = mcompd[ID %in% 1:10, .SD[1:3], by = ID], sbp = sbp,
+# cilr <- complr(data = mcompd[ID %in% 1:10, .SD[1:3], by = ID], sbp = sbp,
 #                 parts = c("TST", "WAKE", "MVPA", "LPA", "SB"), idvar = "ID", total = 1440)
 # 
-# suppressWarnings(m <- brmcoda(compilr = cilr,
+# suppressWarnings(m <- brmcoda(complr = cilr,
 #                               formula = Stress ~ bilr1 + bilr2 + bilr3 + bilr4 +
 #                                 wilr1 + wilr2 + wilr3 + wilr4 + Female + (1 | ID),
 #                               chain = 1, iter = 500, seed = 123))
@@ -463,7 +463,7 @@ test_that("wsub gives results in expected direction and magnitude", {
 # test_that("wsub's results matches with brm model (TST vs SB and WAKE vs MVPA)", {
 #   
 #   ## Estimates
-#   if (isTRUE(suppressWarnings(summary(m$Model)$fixed[7, 1] > 0))) { # bilr2 = more TST less SB
+#   if (isTRUE(suppressWarnings(summary(m$model)$fixed[7, 1] > 0))) { # bilr2 = more TST less SB
 #     expect_true(all(f$TST[From == "SB" & Delta > 1]$Mean > 0)) # more TST less SB
 #     expect_true(all(f$SB[From == "TST" & Delta > 1]$Mean < 0)) # more SB less TST
 #   } else {
@@ -471,7 +471,7 @@ test_that("wsub gives results in expected direction and magnitude", {
 #     expect_true(all(f$SB[From == "TST" & Delta > 1]$Mean > 0))
 #   }
 #   
-#   if (isTRUE(suppressWarnings(summary(m$Model)$fixed[9, 1] > 0))) { # bilr4 = more WAKE less MVPA
+#   if (isTRUE(suppressWarnings(summary(m$model)$fixed[9, 1] > 0))) { # bilr4 = more WAKE less MVPA
 #     expect_true(all(f$WAKE[From == "MVPA" & Delta > 1]$Mean > 0)) # more WAKE less MVPA
 #     expect_true(all(f$MVPA[From == "WAKE" & Delta > 1]$Mean < 0)) # more MVPA less WAKE
 #   } else {
@@ -481,12 +481,12 @@ test_that("wsub gives results in expected direction and magnitude", {
 #   
 #   # CIs
 #   suppressWarnings(expect_true(
-#     (0 %gele% c(summary(m$Model)$fixed[7, 3], summary(m$Model)$fixed[7, 4]))
+#     (0 %gele% c(summary(m$model)$fixed[7, 3], summary(m$model)$fixed[7, 4]))
 #     == (0 %agele% c(f$TST[From == "SB" & Delta == 1]$CI_low,
 #                     f$TST[From == "SB" & Delta == 1]$CI_high))))
 #   
 #   suppressWarnings(expect_true(
-#     (0 %gele% c(summary(m$Model)$fixed[9, 3], summary(m$Model)$fixed[9, 4]))
+#     (0 %gele% c(summary(m$model)$fixed[9, 3], summary(m$model)$fixed[9, 4]))
 #     == (0 %agele% c(f$WAKE[From == "MVPA" & Delta == 1]$CI_low,
 #                     f$WAKE[From == "MVPA" & Delta == 1]$CI_high))))
 #   
@@ -498,10 +498,10 @@ test_that("wsub gives results in expected direction and magnitude", {
 #   1, -1, 0, -1, 0,
 #   0, 1, 0, -1, 0), ncol = 5, byrow = TRUE)
 # 
-# cilr <- compilr(data = mcompd[ID %in% 1:10, .SD[1:3], by = ID], sbp = sbp,
+# cilr <- complr(data = mcompd[ID %in% 1:10, .SD[1:3], by = ID], sbp = sbp,
 #                 parts = c("TST", "WAKE", "MVPA", "LPA", "SB"), idvar = "ID", total = 1440)
 # 
-# suppressWarnings(m <- brmcoda(compilr = cilr,
+# suppressWarnings(m <- brmcoda(complr = cilr,
 #                               formula = Stress ~ bilr1 + bilr2 + bilr3 + bilr4 +
 #                                 wilr1 + wilr2 + wilr3 + wilr4 + Female + (1 | ID),
 #                               seed = 123))
@@ -511,7 +511,7 @@ test_that("wsub gives results in expected direction and magnitude", {
 # test_that("wsub's results matches with brm model (MVPA vs SB) and (WAKE vs LPA)", {
 #   
 #   ## Estimates
-#   if (isTRUE(suppressWarnings(summary(m$Model)$fixed[7, 1] > 0))) { # wilr2 = more MVPA less SB
+#   if (isTRUE(suppressWarnings(summary(m$model)$fixed[7, 1] > 0))) { # wilr2 = more MVPA less SB
 #     expect_true(all(g$MVPA[From == "SB" & Delta > 1]$Mean > 0)) # more MVPA less SB
 #     expect_true(all(g$SB[From == "MVPA" & Delta > 1]$Mean < 0)) # more SB less MVPA
 #   } else {
@@ -519,7 +519,7 @@ test_that("wsub gives results in expected direction and magnitude", {
 #     expect_true(all(g$SB[From == "MVPA" & Delta > 1]$Mean > 0))
 #   }
 #   
-#   if (isTRUE(suppressWarnings(summary(m$Model)$fixed[9, 1] > 0))) { # wilr4 = more WAKE less LPA
+#   if (isTRUE(suppressWarnings(summary(m$model)$fixed[9, 1] > 0))) { # wilr4 = more WAKE less LPA
 #     expect_true(all(g$WAKE[From == "LPA" & Delta > 1]$Mean > 0)) # more WAKE less LPA
 #     expect_true(all(g$LPA[From == "WAKE" & Delta > 1]$Mean < 0)) # more LPA less WAKE
 #   } else {
@@ -529,12 +529,12 @@ test_that("wsub gives results in expected direction and magnitude", {
 #   
 #   # CIs
 #   suppressWarnings(expect_true(
-#     (0 %gele% c(summary(m$Model)$fixed[7, 3], summary(m$Model)$fixed[7, 4]))
+#     (0 %gele% c(summary(m$model)$fixed[7, 3], summary(m$model)$fixed[7, 4]))
 #     == (0 %agele% c(g$MVPA[From == "SB" & Delta == 1]$CI_low,
 #                     g$MVPA[From == "SB" & Delta == 1]$CI_high))))
 #   
 #   suppressWarnings(expect_true(
-#     (0 %gele% c(summary(m$Model)$fixed[9, 3], summary(m$Model)$fixed[9, 4]))
+#     (0 %gele% c(summary(m$model)$fixed[9, 3], summary(m$model)$fixed[9, 4]))
 #     == (0 %agele% c(g$WAKE[From == "LPA" & Delta == 1]$CI_low,
 #                     g$WAKE[From == "LPA" & Delta == 1]$CI_high))))
 #   
@@ -546,28 +546,28 @@ test_that("wsub gives results in expected direction and magnitude", {
 test_that("wsub's results matches with brm model for 2-component composition (TST vs WAKE)", {
   
   sbp <- as.matrix(data.table(1, -1))
-  cilr <- compilr(data = mcompd[ID %in% 1:10, .SD[1:3], by = ID], sbp = sbp,
-                  parts = c("TST", "WAKE"), idvar = "ID", total = 1440)
+  cilr <- complr(data = mcompd[ID %in% 1:10, .SD[1:3], by = ID], sbp = sbp,
+                 parts = c("TST", "WAKE"), idvar = "ID", total = 1440)
   psub <- basesub(c("TST", "WAKE"))
   suppressWarnings(
-    m <- brmcoda(compilr = cilr,
+    m <- brmcoda(complr = cilr,
                  formula = Stress ~ bilr1 + wilr1 + (1 | ID),
                  chain = 1, iter = 500, seed = 123,
                  backend = backend))
   a <- wsub(object = m, basesub = psub, delta = 1:2)
   
   ## Estimates
-  if (isTRUE(suppressWarnings(summary(m$Model)$fixed[3, 1] > 0))) { 
+  if (isTRUE(suppressWarnings(summary(m$model)$fixed[3, 1] > 0))) { 
     expect_true(all(a$TST[From == "WAKE" & Delta > 1]$Mean > 0)) 
     expect_true(all(a$WAKE[From == "TST" & Delta > 1]$Mean < 0)) 
   } else {
     expect_true(all(a$TST[From == "WAKE" & Delta > 1]$Mean < 0))
     expect_true(all(a$WAKE[From == "TST" & Delta > 1]$Mean > 0))
   }
-
+  
   # CIs
   suppressWarnings(expect_true(
-    (0 %gele% c(summary(m$Model)$fixed[3, 3], summary(m$Model)$fixed[3, 4]))
+    (0 %gele% c(summary(m$model)$fixed[3, 3], summary(m$model)$fixed[3, 4]))
     == (0 %agele% c(a$TST[From == "WAKE" & Delta == 1]$CI_low,
                     a$TST[From == "WAKE" & Delta == 1]$CI_high))))
   
@@ -577,18 +577,18 @@ test_that("wsub's results matches with brm model for 2-component composition (TS
 test_that("wsub's results matches with brm model for 2-component composition (TST vs MVPA)", {
   
   sbp <- as.matrix(data.table(1, -1))
-  cilr <- compilr(data = mcompd[ID %in% 1:10, .SD[1:3], by = ID], sbp = sbp,
-                  parts = c("TST", "MVPA"), idvar = "ID", total = 1440)
+  cilr <- complr(data = mcompd[ID %in% 1:10, .SD[1:3], by = ID], sbp = sbp,
+                 parts = c("TST", "MVPA"), idvar = "ID", total = 1440)
   psub <- basesub(c("TST", "MVPA"))
   suppressWarnings(
-    m <- brmcoda(compilr = cilr,
+    m <- brmcoda(complr = cilr,
                  formula = Stress ~ bilr1 + wilr1 + (1 | ID),
                  chain = 1, iter = 500, seed = 123,
                  backend = backend))
   b <- wsub(object = m, basesub = psub, delta = 1:2)
   
   ## Estimates
-  if (isTRUE(suppressWarnings(summary(m$Model)$fixed[3, 1] > 0))) { 
+  if (isTRUE(suppressWarnings(summary(m$model)$fixed[3, 1] > 0))) { 
     expect_true(all(b$TST[From == "MVPA" & Delta > 1]$Mean > 0)) 
     expect_true(all(b$MVPA[From == "TST" & Delta > 1]$Mean < 0)) 
   } else {
@@ -598,7 +598,7 @@ test_that("wsub's results matches with brm model for 2-component composition (TS
   
   # CIs
   suppressWarnings(expect_true(
-    (0 %gele% c(summary(m$Model)$fixed[3, 3], summary(m$Model)$fixed[3, 4]))
+    (0 %gele% c(summary(m$model)$fixed[3, 3], summary(m$model)$fixed[3, 4]))
     == (0 %agele% c(b$TST[From == "MVPA" & Delta == 1]$CI_low,
                     b$TST[From == "MVPA" & Delta == 1]$CI_high))))
   
@@ -607,18 +607,18 @@ test_that("wsub's results matches with brm model for 2-component composition (TS
 ## TST vs LPA
 test_that("wsub's results matches with brm model for 2-component composition (TST vs LPA)", {
   sbp <- as.matrix(data.table(1, -1))
-  cilr <- compilr(data = mcompd[ID %in% 1:10, .SD[1:3], by = ID], sbp = sbp,
-                  parts = c("TST", "LPA"), idvar = "ID", total = 1440)
+  cilr <- complr(data = mcompd[ID %in% 1:10, .SD[1:3], by = ID], sbp = sbp,
+                 parts = c("TST", "LPA"), idvar = "ID", total = 1440)
   psub <- basesub(c("TST", "LPA"))
   suppressWarnings(
-    m <- brmcoda(compilr = cilr,
+    m <- brmcoda(complr = cilr,
                  formula = Stress ~ bilr1 + wilr1 + (1 | ID),
                  chain = 1, iter = 500, seed = 123,
                  backend = backend))
   c <- wsub(object = m, basesub = psub, delta = 1:2)
   
   ## Estimates
-  if (isTRUE(suppressWarnings(summary(m$Model)$fixed[3, 1] > 0))) { 
+  if (isTRUE(suppressWarnings(summary(m$model)$fixed[3, 1] > 0))) { 
     expect_true(all(c$TST[From == "LPA" & Delta > 1]$Mean > 0)) 
     expect_true(all(c$LPA[From == "TST" & Delta > 1]$Mean < 0)) 
   } else {
@@ -628,7 +628,7 @@ test_that("wsub's results matches with brm model for 2-component composition (TS
   
   # CIs
   suppressWarnings(expect_true(
-    (0 %gele% c(summary(m$Model)$fixed[3, 3], summary(m$Model)$fixed[3, 4]))
+    (0 %gele% c(summary(m$model)$fixed[3, 3], summary(m$model)$fixed[3, 4]))
     == (0 %agele% c(c$TST[From == "LPA" & Delta == 1]$CI_low,
                     c$TST[From == "LPA" & Delta == 1]$CI_high))))
   
@@ -637,18 +637,18 @@ test_that("wsub's results matches with brm model for 2-component composition (TS
 ## TST vs SB
 test_that("wsub's results matches with brm model for 2-component composition (TST vs SB)", {
   sbp <- as.matrix(data.table(1, -1))
-  cilr <- compilr(data = mcompd[ID %in% 1:10, .SD[1:3], by = ID], sbp = sbp,
-                  parts = c("TST", "SB"), idvar = "ID", total = 1440)
+  cilr <- complr(data = mcompd[ID %in% 1:10, .SD[1:3], by = ID], sbp = sbp,
+                 parts = c("TST", "SB"), idvar = "ID", total = 1440)
   psub <- basesub(c("TST", "SB"))
   suppressWarnings(
-    m <- brmcoda(compilr = cilr,
+    m <- brmcoda(complr = cilr,
                  formula = Stress ~ bilr1 + wilr1 + (1 | ID),
                  chain = 1, iter = 500, seed = 123,
                  backend = backend))
   d <- wsub(object = m, basesub = psub, delta = 1:2)
   
   ## Estimates
-  if (isTRUE(suppressWarnings(summary(m$Model)$fixed[3, 1] > 0))) { 
+  if (isTRUE(suppressWarnings(summary(m$model)$fixed[3, 1] > 0))) { 
     expect_true(all(d$TST[From == "SB" & Delta > 1]$Mean > 0)) 
     expect_true(all(d$SB[From == "TST" & Delta > 1]$Mean < 0)) 
   } else {
@@ -658,7 +658,7 @@ test_that("wsub's results matches with brm model for 2-component composition (TS
   
   # CIs
   suppressWarnings(expect_true(
-    (0 %gele% c(summary(m$Model)$fixed[3, 3], summary(m$Model)$fixed[3, 4]))
+    (0 %gele% c(summary(m$model)$fixed[3, 3], summary(m$model)$fixed[3, 4]))
     == (0 %agele% c(d$TST[From == "SB" & Delta == 1]$CI_low,
                     d$TST[From == "SB" & Delta == 1]$CI_high))))
   
@@ -667,19 +667,19 @@ test_that("wsub's results matches with brm model for 2-component composition (TS
 ## WAKE vs MVPA
 test_that("wsub's results matches with brm model for 2-component composition (WAKE vs MVPA)", {
   sbp <- as.matrix(data.table(1, -1))
-  cilr <- compilr(data = mcompd[ID %in% 1:10, .SD[1:3], by = ID], sbp = sbp,
-                  parts = c("WAKE", "MVPA"), idvar = "ID", total = 1440)
+  cilr <- complr(data = mcompd[ID %in% 1:10, .SD[1:3], by = ID], sbp = sbp,
+                 parts = c("WAKE", "MVPA"), idvar = "ID", total = 1440)
   psub <- basesub(c("WAKE", "MVPA"))
   
   suppressWarnings(
-    m <- brmcoda(compilr = cilr,
+    m <- brmcoda(complr = cilr,
                  formula = Stress ~ bilr1 + wilr1 + (1 | ID),
                  chain = 1, iter = 500, seed = 123,
                  backend = backend))
   e <- wsub(object = m, basesub = psub, delta = 1:2)
   
   ## Estimates
-  if (isTRUE(suppressWarnings(summary(m$Model)$fixed[3, 1] > 0))) { 
+  if (isTRUE(suppressWarnings(summary(m$model)$fixed[3, 1] > 0))) { 
     expect_true(all(e$WAKE[From == "MVPA" & Delta > 1]$Mean > 0)) 
     expect_true(all(e$MVPA[From == "WAKE" & Delta > 1]$Mean < 0)) 
   } else {
@@ -689,7 +689,7 @@ test_that("wsub's results matches with brm model for 2-component composition (WA
   
   # CIs
   suppressWarnings(expect_true(
-    (0 %gele% c(summary(m$Model)$fixed[3, 3], summary(m$Model)$fixed[3, 4]))
+    (0 %gele% c(summary(m$model)$fixed[3, 3], summary(m$model)$fixed[3, 4]))
     == (0 %agele% c(e$WAKE[From == "MVPA" & Delta == 1]$CI_low,
                     e$WAKE[From == "MVPA" & Delta == 1]$CI_high))))
   
@@ -698,18 +698,18 @@ test_that("wsub's results matches with brm model for 2-component composition (WA
 ## WAKE vs LPA
 test_that("wsub's results matches with brm model for 2-component composition (WAKE vs LPA)", {
   sbp <- as.matrix(data.table(1, -1))
-  cilr <- compilr(data = mcompd[ID %in% 1:10, .SD[1:3], by = ID], sbp = sbp,
-                  parts = c("WAKE", "LPA"), idvar = "ID", total = 1440)
+  cilr <- complr(data = mcompd[ID %in% 1:10, .SD[1:3], by = ID], sbp = sbp,
+                 parts = c("WAKE", "LPA"), idvar = "ID", total = 1440)
   psub <- basesub(c("WAKE", "LPA"))
   suppressWarnings(
-    m <- brmcoda(compilr = cilr,
+    m <- brmcoda(complr = cilr,
                  formula = Stress ~ bilr1 + wilr1 + (1 | ID),
                  chain = 1, iter = 500, seed = 123,
                  backend = backend))
   f <- wsub(object = m, basesub = psub, delta = 1:2)
   
   ## Estimates
-  if (isTRUE(suppressWarnings(summary(m$Model)$fixed[3, 1] > 0))) { 
+  if (isTRUE(suppressWarnings(summary(m$model)$fixed[3, 1] > 0))) { 
     expect_true(all(f$WAKE[From == "LPA" & Delta > 1]$Mean > 0)) 
     expect_true(all(f$LPA[From == "WAKE" & Delta > 1]$Mean < 0)) 
   } else {
@@ -719,7 +719,7 @@ test_that("wsub's results matches with brm model for 2-component composition (WA
   
   # CIs
   suppressWarnings(expect_true(
-    (0 %gele% c(summary(m$Model)$fixed[3, 3], summary(m$Model)$fixed[3, 4]))
+    (0 %gele% c(summary(m$model)$fixed[3, 3], summary(m$model)$fixed[3, 4]))
     == (0 %agele% c(f$WAKE[From == "LPA" & Delta == 1]$CI_low,
                     f$WAKE[From == "LPA" & Delta == 1]$CI_high))))
   
@@ -728,18 +728,18 @@ test_that("wsub's results matches with brm model for 2-component composition (WA
 ## WAKE vs SB
 test_that("wsub's results matches with brm model for 2-component composition (WAKE vs SB)", {
   sbp <- as.matrix(data.table(1, -1))
-  cilr <- compilr(data = mcompd[ID %in% 1:10, .SD[1:3], by = ID], sbp = sbp,
-                  parts = c("WAKE", "SB"), idvar = "ID", total = 1440)
+  cilr <- complr(data = mcompd[ID %in% 1:10, .SD[1:3], by = ID], sbp = sbp,
+                 parts = c("WAKE", "SB"), idvar = "ID", total = 1440)
   psub <- basesub(c("WAKE", "SB"))
   suppressWarnings(
-    m <- brmcoda(compilr = cilr,
+    m <- brmcoda(complr = cilr,
                  formula = Stress ~ bilr1 + wilr1 + (1 | ID),
                  chain = 1, iter = 500, seed = 123,
                  backend = backend))
   g <- wsub(object = m, basesub = psub, delta = 1:2)
   
   ## Estimates
-  if (isTRUE(suppressWarnings(summary(m$Model)$fixed[3, 1] > 0))) { 
+  if (isTRUE(suppressWarnings(summary(m$model)$fixed[3, 1] > 0))) { 
     expect_true(all(g$WAKE[From == "SB" & Delta > 1]$Mean > 0)) 
     expect_true(all(g$SB[From == "WAKE" & Delta > 1]$Mean < 0)) 
   } else {
@@ -749,7 +749,7 @@ test_that("wsub's results matches with brm model for 2-component composition (WA
   
   # CIs
   suppressWarnings(expect_true(
-    (0 %gele% c(summary(m$Model)$fixed[3, 3], summary(m$Model)$fixed[3, 4]))
+    (0 %gele% c(summary(m$model)$fixed[3, 3], summary(m$model)$fixed[3, 4]))
     == (0 %agele% c(g$WAKE[From == "SB" & Delta == 1]$CI_low,
                     g$WAKE[From == "SB" & Delta == 1]$CI_high))))
   
@@ -759,18 +759,18 @@ test_that("wsub's results matches with brm model for 2-component composition (WA
 test_that("wsub's results matches with brm model for 2-component composition (MVPA vs LPA)", {
   
   sbp <- as.matrix(data.table(1, -1))
-  cilr <- compilr(data = mcompd[ID %in% 1:10, .SD[1:3], by = ID], sbp = sbp,
-                  parts = c("MVPA", "LPA"), idvar = "ID", total = 1440)
+  cilr <- complr(data = mcompd[ID %in% 1:10, .SD[1:3], by = ID], sbp = sbp,
+                 parts = c("MVPA", "LPA"), idvar = "ID", total = 1440)
   psub <- basesub(c("MVPA", "LPA"))
   suppressWarnings(
-    m <- brmcoda(compilr = cilr,
+    m <- brmcoda(complr = cilr,
                  formula = Stress ~ bilr1 + wilr1 + (1 | ID),
                  chain = 1, iter = 500, seed = 123,
                  backend = backend))
   h <- wsub(object = m, basesub = psub, delta = 1:2)
   
   ## Estimates
-  if (isTRUE(suppressWarnings(summary(m$Model)$fixed[3, 1] > 0))) { 
+  if (isTRUE(suppressWarnings(summary(m$model)$fixed[3, 1] > 0))) { 
     expect_true(all(h$MVPA[From == "LPA" & Delta > 1]$Mean > 0)) 
     expect_true(all(h$LPA[From == "MVPA" & Delta > 1]$Mean < 0)) 
   } else {
@@ -780,7 +780,7 @@ test_that("wsub's results matches with brm model for 2-component composition (MV
   
   # CIs
   suppressWarnings(expect_true(
-    (0 %gele% c(summary(m$Model)$fixed[3, 3], summary(m$Model)$fixed[3, 4]))
+    (0 %gele% c(summary(m$model)$fixed[3, 3], summary(m$model)$fixed[3, 4]))
     == (0 %agele% c(h$MVPA[From == "LPA" & Delta == 1]$CI_low,
                     h$MVPA[From == "LPA" & Delta == 1]$CI_high))))
   
@@ -790,18 +790,18 @@ test_that("wsub's results matches with brm model for 2-component composition (MV
 test_that("wsub's results matches with brm model for 2-component composition (MVPA vs SB)", {
   
   sbp <- as.matrix(data.table(1, -1))
-  cilr <- compilr(data = mcompd[ID %in% 1:10, .SD[1:3], by = ID], sbp = sbp,
-                  parts = c("MVPA", "SB"), idvar = "ID", total = 1440)
+  cilr <- complr(data = mcompd[ID %in% 1:10, .SD[1:3], by = ID], sbp = sbp,
+                 parts = c("MVPA", "SB"), idvar = "ID", total = 1440)
   psub <- basesub(c("MVPA", "SB"))
   suppressWarnings(
-    m <- brmcoda(compilr = cilr,
+    m <- brmcoda(complr = cilr,
                  formula = Stress ~ bilr1 + wilr1 + (1 | ID),
                  chain = 1, iter = 500, seed = 123,
                  backend = backend))
   i <- wsub(object = m, basesub = psub, delta = 1:2)
   
   ## Estimates
-  if (isTRUE(suppressWarnings(summary(m$Model)$fixed[3, 1] > 0))) { 
+  if (isTRUE(suppressWarnings(summary(m$model)$fixed[3, 1] > 0))) { 
     expect_true(all(i$MVPA[From == "SB" & Delta > 1]$Mean > 0)) 
     expect_true(all(i$SB[From == "MVPA" & Delta > 1]$Mean < 0)) 
   } else {
@@ -811,7 +811,7 @@ test_that("wsub's results matches with brm model for 2-component composition (MV
   
   # CIs
   suppressWarnings(expect_true(
-    (0 %gele% c(summary(m$Model)$fixed[3, 3], summary(m$Model)$fixed[3, 4]))
+    (0 %gele% c(summary(m$model)$fixed[3, 3], summary(m$model)$fixed[3, 4]))
     == (0 %agele% c(i$MVPA[From == "SB" & Delta == 1]$CI_low,
                     i$MVPA[From == "SB" & Delta == 1]$CI_high))))
   
@@ -821,18 +821,18 @@ test_that("wsub's results matches with brm model for 2-component composition (MV
 test_that("wsub's results matches with brm model for 2-component composition (LPA vs SB)", {
   
   sbp <- as.matrix(data.table(1, -1))
-  cilr <- compilr(data = mcompd[ID %in% 1:10, .SD[1:3], by = ID], sbp = sbp,
-                  parts = c("LPA", "SB"), idvar = "ID", total = 1440)
+  cilr <- complr(data = mcompd[ID %in% 1:10, .SD[1:3], by = ID], sbp = sbp,
+                 parts = c("LPA", "SB"), idvar = "ID", total = 1440)
   psub <- basesub(c("LPA", "SB"))
   suppressWarnings(
-    m <- brmcoda(compilr = cilr,
+    m <- brmcoda(complr = cilr,
                  formula = Stress ~ bilr1 + wilr1 + (1 | ID),
                  chain = 1, iter = 500, seed = 123,
                  backend = backend))
   j <- wsub(object = m, basesub = psub, delta = 1:2)
   
   ## Estimates
-  if (isTRUE(suppressWarnings(summary(m$Model)$fixed[3, 1] > 0))) { 
+  if (isTRUE(suppressWarnings(summary(m$model)$fixed[3, 1] > 0))) { 
     expect_true(all(j$LPA[From == "SB" & Delta > 1]$Mean > 0)) 
     expect_true(all(j$SB[From == "LPA" & Delta > 1]$Mean < 0)) 
   } else {
@@ -842,7 +842,7 @@ test_that("wsub's results matches with brm model for 2-component composition (LP
   
   # CIs
   suppressWarnings(expect_true(
-    (0 %gele% c(summary(m$Model)$fixed[3, 3], summary(m$Model)$fixed[3, 4]))
+    (0 %gele% c(summary(m$model)$fixed[3, 3], summary(m$model)$fixed[3, 4]))
     == (0 %agele% c(j$LPA[From == "SB" & Delta == 1]$CI_low,
                     j$LPA[From == "SB" & Delta == 1]$CI_high))))
   

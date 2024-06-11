@@ -6,7 +6,7 @@
 #' @param to A character value or vector specifying the names of the compositional parts
 #' that were reallocated to in the model.
 #' @param ref A character value of ((\code{"grandmean"} or \code{"clustermean"} or \code{"users"}),
-#' @param level A character value of (\code{"between"} or \code{"within"}).
+#' @param level A character value of (\code{"between"}, \code{"within"}), or \code{"aggregate"}).
 #' @param ... Further arguments passed to \code{\link{ggplot}}.
 #'
 #' @return A ggplot graph object showing the estimated difference in outcome when
@@ -22,13 +22,13 @@ plot.substitution <- function(x, to,
   
   if (isFALSE(any(c("grandmean", "clustermean", "users") %in% ref)) ||
       isTRUE(length(ref) > 1)) {
-    stop("'ref' should be either grandmean or clustermean or users.")
+    stop("'ref' should be either one of the following: \"grandmean\", \"clustermean\", or \"users\".")
   }
   ref <- as.character(ref)
   
-  if (isFALSE(any(c("between", "within") %in% level)) ||
+  if (isFALSE(any(c("between", "within", "aggregate") %in% level)) ||
       isTRUE(length(level) > 1)) {
-    stop("'level' should be either between or within.")
+    stop("'level' should be either one of the following: \"between\", \"within\", \"aggregate\".")
   }
   level <- as.character(level)
   
@@ -50,31 +50,31 @@ plot.substitution <- function(x, to,
   if (isTRUE(is.sequential(delta.pos))) {
     plotsub <- ggplot(tmp, 
                       aes(x = Delta, y = Mean)) +
-      geom_line(aes(colour = From), linewidth = 1) +
-      geom_ribbon(
-        aes(ymin = CI_low,
-            ymax = CI_high, fill = From),
-        alpha = 1 / 10,
-        linewidth = 1 / 10) +
       geom_hline(yintercept = 0,
                  linewidth = 0.2,
                  linetype = 2) +
       geom_vline(xintercept = 0,
                  linewidth = 0.2,
                  linetype = 2) +
+      geom_ribbon(
+        aes(ymin = CI_low,
+            ymax = CI_high, fill = From),
+        alpha = 2 / 10,
+        linewidth = 1 / 10) +
+      geom_line(aes(colour = From), linewidth = 1) +
       facet_grid( ~ From)
     
   } else {
     plotsub <- ggplot(tmp,
                       aes(x = Delta, y = Mean)) +
-      geom_line(aes(colour = From)) +
-      geom_pointrange(aes(ymin = CI_low, ymax = CI_high, colour = From)) +
       geom_hline(yintercept = 0,
                  linewidth = 0.2,
                  linetype = 2) +
       geom_vline(xintercept = 0,
                  linewidth = 0.2,
                  linetype = 2) +
+      geom_line(aes(colour = From)) +
+      geom_pointrange(aes(ymin = CI_low, ymax = CI_high, colour = From)) +
       facet_grid( ~ From)
     
   }
@@ -107,7 +107,7 @@ plot.substitution <- function(x, to,
 #' plot(fit)
 #' }
 plot.brmcoda <- function(x, ...) {
-  plot(x$Model, ...)
+  plot(x$model, ...)
 }
 
 #' Create a matrix of output plots from a \code{\link{brmcoda}}'s \code{\link{brmsfit}} object
@@ -138,7 +138,7 @@ plot.brmcoda <- function(x, ...) {
 #' pairs(fit)
 #' }
 pairs.brmcoda <- function(x, ...) {
-  pairs(x$Model, ...)
+  pairs(x$model, ...)
 }
 
 #' MCMC Plots Implemented in \pkg{bayesplot}
@@ -170,5 +170,5 @@ pairs.brmcoda <- function(x, ...) {
 #' mcmc_plot(fit)
 #' }
 mcmc_plot.brmcoda <- function(object, ...) {
-  mcmc_plot(object$Model, ...)
+  mcmc_plot(object$model, ...)
 }

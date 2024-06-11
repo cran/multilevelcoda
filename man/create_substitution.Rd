@@ -5,10 +5,12 @@
 \title{Constructor function for \code{substitution} class.}
 \usage{
 create_substitution(
-  BetweenSub,
-  WithinSub,
-  BetweenSubMargins,
-  WithinSubMargins,
+  between_simple_sub,
+  within_simple_sub,
+  simple_sub,
+  between_avg_sub,
+  within_avg_sub,
+  avg_sub,
   delta,
   ref,
   level,
@@ -18,13 +20,17 @@ create_substitution(
 )
 }
 \arguments{
-\item{BetweenSub}{A list of results from \code{bsub} or \code{NULL}}
+\item{between_simple_sub}{A list of results from \code{bsub} or \code{NULL}}
 
-\item{WithinSub}{A list of results from \code{wsub} or \code{NULL}}
+\item{within_simple_sub}{A list of results from \code{wsub} or \code{NULL}}
 
-\item{BetweenSubMargins}{A list of results from \code{bsubmargins} or \code{NULL}}
+\item{simple_sub}{A list of results from \code{sub} or \code{NULL}}
 
-\item{WithinSubMargins}{A list of results from \code{wsubmargins} or \code{NULL}}
+\item{between_avg_sub}{A list of results from \code{bsubmargins} or \code{NULL}}
+
+\item{within_avg_sub}{A list of results from \code{wsubmargins} or \code{NULL}}
+
+\item{avg_sub}{A list of results from \code{submargins} or \code{NULL}}
 
 \item{delta}{A numeric vector of the amount of substitution}
 

@@ -1,5 +1,5 @@
 ---
-title: "Compositional Substitution Multilevel Models"
+title: "Compositional Substitution Multilevel Analysis"
 output: 
   html_document:
     theme: spacelab
@@ -35,7 +35,7 @@ When examining the relationship between a composition and an outconme,
 we are often are interested in how an outcome changes when a fixed unit in the composition
 (e.g., minutes of behaviours during a day) is reallocated
 from one component to another. 
-The Compositional Isotemporal Substitution Model can be used to estimate this change. 
+The Compositional Isotemporal Substitution Analysis can be used to estimate this change. 
 The `multilevelcoda` package implements this method in a multilevel framework and offers functions 
 for both between- and within-person levels of variability.
 We discuss 4 different substitution models in this vignette.
@@ -60,13 +60,13 @@ options(digits = 3) # reduce number of digits shown
 # Fitting main model
 Let's fit our main `brms` model predicting `Stress` from both between and within-person
 sleep-wake behaviours (represented by isometric log ratio coordinates), with sex as a covariate, 
-using the `brmcoda()` function. We can compute ILR coordinate predictors using `compilr()` function.
+using the `brmcoda()` function. We can compute ILR coordinate predictors using `complr()` function.
 
 ```{r brmcoda, results = "hide", message=FALSE}
-cilr <- compilr(data = mcompd, sbp = sbp,
+cilr <- complr(data = mcompd, sbp = sbp,
                 parts = c("TST", "WAKE", "MVPA", "LPA", "SB"), idvar = "ID", total = 1440)
 
-m <- brmcoda(compilr = cilr,
+m <- brmcoda(complr = cilr,
              formula = Stress ~ bilr1 + bilr2 + bilr3 + bilr4 +
                                 wilr1 + wilr2 + wilr3 + wilr4 + Female + (1 | ID),
              cores = 8, seed = 123, backend = "cmdstanr")
@@ -112,7 +112,7 @@ Average marginal substitution models:
 
 *Tips: Substitution models are often computationally demanding tasks. You can speed up the models using parallel execution, for example, using `doFuture` package.*
 
-## Basic Substitution model
+## Basic Substitution Analysis
 The below example examines the changes in stress for different pairwise substitution of sleep-wake behaviours for a period of 1 to 5 minutes, at between-person level. 
 We specify `level = between` to indicate substitutional change would be at the between-person level, 
 and `ref = "grandmean"` to indicate substitution model using the grand compositional mean as reference composition.
@@ -141,7 +141,7 @@ plot(subm1, to = "TST", level = "between", ref = "grandmean")
 ```
 
 
-```{r mlmcoda-plotbsubm1, fig.width = 8, fig.height = 6, echo=FALSE, fig.cap = "Example of Between-person Substitution Model"}
+```{r mlmcoda-plotbsubm1, fig.width = 8, fig.height = 6, echo=FALSE, fig.cap = "Example of Between-person Substitution Analysis"}
 plot(subm1, to = "TST", level = "between", ref = "grandmean") +
   scale_color_jco() +
   scale_fill_jco() +
@@ -176,7 +176,7 @@ plot(subm1, to = "TST", level = "within", ref = "grandmean")
 ``` 
 
 
-```{r mlmcoda-plotwsubm1, fig.width = 8, fig.height = 6, echo= FALSE, fig.cap = "Example of Within-person Substitution Model"}
+```{r mlmcoda-plotwsubm1, fig.width = 8, fig.height = 6, echo= FALSE, fig.cap = "Example of Within-person Substitution Analysis"}
 plot(subm1, to = "TST", level = "within", ref = "grandmean") +
   scale_color_jco() +
   scale_fill_jco() +
@@ -204,16 +204,13 @@ This is difference from the basic substitution model which yields prediction con
 an "average" person in the data set (e.g., by using the grand compositional mean
 as the reference composition). 
 Average substitution models models are generally more computationally expensive than basic subsitution models. All models can be run faster in shorter walltime using parallel execution. 
-In this example, we use package `doFuture` to parallel our models. `substitution()` will run 5 
-substitution models for 5 sleep-wake behaviours, so we will parallel them across 5 workers.
+In this example, we set `cores = 5`. `substitution()` will run 5 
+substitution models for 5 sleep-wake behaviours by parallel excuting them across 5 workers.
 
 ```{r submargin}
-registerDoFuture()
-plan(multisession, workers = 5)
-
 subm2 <- substitution(object = m, delta = 1:10,
-                      ref = "clustermean", level = c("between", "within"))
-registerDoSEQ()
+                      ref = "clustermean", level = c("between", "within"),
+                      cores = 5)
 ```
 
 Below are the results.
@@ -222,7 +219,7 @@ Below are the results.
 knitr::kable(summary(subm2, delta = 10, to = "TST"))
 ```
 
-A comparison between between- and within-person substitution model of sleep on stress, 
+A comparison between between- and within-person substitution analyses of sleep on stress, 
 plot using `plot()` and `ggpubr::ggarrange()` functions.
 
 ```{r plotsubmargin, eval=FALSE}
@@ -235,7 +232,7 @@ ggarrange(p1, p2,
 ```
 
 
-```{r mlmcoda-submargins, fig.width = 8, fig.height = 6, echo=FALSE, fig.cap = "Example of Average Marginal Substitution Model"}
+```{r mlmcoda-submargins, fig.width = 8, fig.height = 6, echo=FALSE, fig.cap = "Example of Average Marginal Substitution Analysis"}
 library(ggpubr)
 p1 <- plot(subm2, to = "TST", level = "between", ref = "clustermean") +
   scale_color_jco() +
