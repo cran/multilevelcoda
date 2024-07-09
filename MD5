@@ -1,5 +1,5 @@
-8e82585a7a3f5a5adbd7b6172f47c0a7 *DESCRIPTION
-c3dcba85ebe8684836cabc56992c54c2 *NAMESPACE
+542d9e3a3708488082a17d5307229878 *DESCRIPTION
+b35fe06dbc36a570126f830adceace2f *NAMESPACE
 0403efe108b19b2b58da884132d7f194 *NEWS.md
 7f3863ef600d27d3a9a723e806e9c931 *R/basesub.R
 5ee1b4158c60a6a39c9f7e79255a32f0 *R/brmcoda-methods.R
@@ -13,7 +13,7 @@ c22d8d6ba76a6405b0ed514d3b92f225 *R/posterior.R
 446e2179de7b15f1a43ea672195a3d39 *R/shiny.R
 8672124736332d78918630809d12f5d2 *R/substitution-bsub.R
 20b6d5f58965d70d4a2fa5b1866f4eef *R/substitution-bsubmargins.R
-b22df5b538a99f5cf5d312c1dfb404d4 *R/substitution-helpers.R
+ceeec87c489b6c46e36b90ce327ed84f *R/substitution-helpers.R
 38fbd9fa78c4cf8ee408facd23615989 *R/substitution-sub-margins.R
 25538f155eb4dba921fcdcdc1dd50537 *R/substitution-wsub.R
 670833f0a46d304bc8ed4459310ca715 *R/substitution-wsubmargins.R
@@ -44,7 +44,7 @@ b933689aba3e0b37f95a809f906b3f30 *man/as.data.frame.complr.Rd
 ebfcb308ca37ba83f0042e90fc1a750a *man/brmcoda.Rd
 0231e92e583f5052c15fe1bc170fcee8 *man/bsub.Rd
 f215f7f64830e3e27a79c46155173ff8 *man/bsubmargins.Rd
-8003096691963c114229f58cbefb8f92 *man/build.rg.Rd
+8bef7c3d1db2de6800a1a68e50300c23 *man/build.rg.Rd
 dcb958eb2c7be6fcd1cd4d307a908c33 *man/coef.brmcoda.Rd
 52fa64cab3fa926314fd682d5e0e7b52 *man/compilr.Rd
 5ae474318d92c18c8556533deab709b5 *man/complr.Rd
