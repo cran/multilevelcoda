@@ -17,6 +17,9 @@
 #'                parts = c("TST", "WAKE", "MVPA", "LPA", "SB"), 
 #'                idvar = "ID")
 #' summary(cilr)
+#' cilr <- complr(data = mcompd, sbp = sbp, 
+#'                parts = c("TST", "WAKE", "MVPA", "LPA", "SB"))
+#' summary(cilr)
 #' @export
 summary.complr <- function(object,
                            weight = c("equal", "proportional"),
@@ -35,10 +38,10 @@ summary.complr <- function(object,
     sequential_binary_partition = object$sbp
   )
   out$data <- list(composition_parts = object$parts,
-                   logratios = paste0(object$transform, seq_len(length(object$parts) - 1)),
-                   idvar = if(exists("object$idvar")) (object$idvar) else (NULL),
-                   nobs = nrow(object$data),
-                   ngrps = length(unique(object$data[[object$idvar]]))
+                   logratios         = paste0(object$transform, seq_len(length(object$parts) - 1)),
+                   idvar             = if(exists("object$idvar")) (object$idvar) else (NULL),
+                   nobs              = nrow(object$data),
+                   ngrps             = if(exists("object$idvar")) (length(unique(object$data[[object$idvar]]))) else (nrow(object$data))
   )
   
   out$geometry <- list(composition_geometry = class(object$comp),
@@ -144,6 +147,84 @@ print.brmcoda <- function(x, ...) {
   
 }
 
+#' Create a Summary of a fitted \code{brmsfit} model from a \code{pivot_coord} object
+#' 
+#' @param object An object of class \code{pivot_coord}.
+#' @param digits A integer value used for number formatting. Default is \code{2}.
+#' @param ... currently ignored.
+#' 
+#' @return A data table of results.
+#' 
+#' @method summary pivot_coord
+#' 
+#' @examples
+#' \donttest{
+#' if(requireNamespace("cmdstanr")){
+#'   m <- brmcoda(complr = complr(data = mcompd, sbp = sbp,
+#'                                  parts = c("TST", "WAKE", "MVPA", "LPA", "SB"),
+#'                                  idvar = "ID", total = 1440),
+#'   formula = Stress ~ bilr1 + bilr2 + bilr3 + bilr4 +
+#'     wilr1 + wilr2 + wilr3 + wilr4 + (1 | ID),
+#'   chain = 1, iter = 500,
+#'   backend = "cmdstanr")
+#'   
+#'   m_pb <- pivot_coord(m)
+#'   summary(m_pb)
+#' }}
+#' @export
+summary.pivot_coord <- function(object, digits = 2, ...) {
+  
+  if (object$method == "refit") {
+    
+    out_all_parts <- lapply(object$output, `[[`, 2)
+    fixef_all_parts <- vector("list")
+    
+    for (i in seq_along(out_all_parts)) {
+      part <- names(out_all_parts)[i]
+      
+      model_fixef_all <- fixef(out_all_parts[[i]])
+      
+      if (length(grep("bilr1", row.names(model_fixef_all), value = T)) > 0) {
+        model_fixef_b <- rbind(model_fixef_all[grep(".*bilr1", rownames(model_fixef_all), value = T), ])
+        model_fixef_b <- cbind.data.frame(Level = "between", 
+                                          model_fixef_b)
+      } else { 
+        model_fixef_b <- NULL
+      }
+      if (length(grep("wilr1", row.names(model_fixef_all), value = T)) > 0) {
+        model_fixef_w <- rbind(model_fixef_all[grep(".*wilr1", rownames(model_fixef_all), value = T), ])
+        model_fixef_w <- cbind.data.frame(Level = "within", 
+                                          model_fixef_w)
+        
+      } else { 
+        model_fixef_w <- NULL
+      }
+      if ((length(grep("ilr1", row.names(model_fixef_all), value = T)) > 0) && (length(grep("[b|w]ilr1", row.names(model_fixef_all), value = T)) == 0)) {
+        model_fixef_t <- rbind(model_fixef_all[grep(".*ilr1", rownames(model_fixef_all), value = T), ])
+        model_fixef_t <- cbind.data.frame(Level = "aggregate", 
+                                          model_fixef_t)
+      } else { 
+        model_fixef_t <- NULL
+      }
+      
+      fixef_part <- cbind(`Pivot coordinate` = paste0(part, "_vs_remaining"), 
+                          rbind(model_fixef_b, model_fixef_w, model_fixef_t)
+      )
+      fixef_all_parts[[i]] <- fixef_part
+    }
+    
+    out <- as.data.table(do.call(rbind, fixef_all_parts))
+  } else {
+    out <- object$output
+  }
+  
+  if(isFALSE(digits == "asis")) {
+    # out[, 1:3] <- round(out[, 1:3], digits)
+    out[] <- lapply(out, function(X) if(is.numeric(X)) round(X, digits) else X)
+  }
+  out
+}
+
 #' Create a Summary of a Substitution Model represented by a \code{substitution} object
 #' 
 #' @param object A \code{substitution} class object.
@@ -236,7 +317,16 @@ summary.substitution <- function(object, delta, to, from,
                          "between_avg_sub", "within_avg_sub", "avg_sub")],
                 rbindlist)
   out <- rbindlist(out, use.names = TRUE)
-  out <- out[Delta %in% delta & Level %in% level & Reference %in% ref & To %in% to & From %in% from]
+  
+  if (!is.null(object$comparison)) {
+    if (object$comparison == "one-to-all") {
+      out <- out[abs(Delta) %in% delta & Level %in% level & Reference %in% ref & (To %in% to | From %in% to)]
+      out[, Delta := abs(Delta)]
+    }
+  }
+  else {
+    out <- out[Delta %in% delta & Level %in% level & Reference %in% ref & To %in% to & From %in% from]
+  }
   
   if(isTRUE(dim(out)[1] == 0)) {
     stop("An empty data.table returned. Please check that the arguments match with your substitution object.")

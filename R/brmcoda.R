@@ -3,11 +3,11 @@
 #' 
 #' Fit a \code{brm} model with multilevel ILR coordinates
 #' 
+#' @param complr A \code{\link{complr}} object containing data of composition, 
+#' ILR coordinates, and other variables used in the model.
 #' @param formula A object of class \code{formula}, \code{brmsformula}:
 #' A symbolic description of the model to be fitted. 
 #' Details of the model specification can be found in \code{\link[brms:brmsformula]{brmsformula}}.
-#' @param complr A \code{\link{complr}} object containing data of composition, 
-#' ILR coordinates, and other variables used in the model.
 #' @param ... Further arguments passed to \code{\link[brms:brm]{brm}}.
 #' 
 #' @return A \code{\link{brmcoda}} with two elements
@@ -42,7 +42,7 @@
 #'   }}
 #' @export
 brmcoda <- function (complr, formula, ...) {
-
+  
   if (isTRUE(missing(complr))) {
     stop(paste(
       "'complr' is a required argument and cannot be missing;",

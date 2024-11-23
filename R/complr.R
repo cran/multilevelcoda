@@ -51,7 +51,7 @@
 #' @importFrom data.table copy as.data.table :=
 #' 
 #' @examples
-#' cilr <- complr(data = mcompd, sbp = sbp,
+#' cilr <- complr(data = mcompd,
 #'                 parts = c("TST", "WAKE", "MVPA", "LPA", "SB"),
 #'                 idvar = "ID", total = 1440)
 #' str(cilr)
@@ -125,9 +125,11 @@ complr <- function(data,
   
   # specific for ilr
   if (identical(transform, "ilr")) {
-    if (missing(sbp)) {
-      stop(" 'sbp', i.e., sequential binary partition, is required for ilr transform.")
-    }
+    if (missing(sbp)) { # build default sbp
+      message(" A sequential binary partition (sbp), is required for ilr transform but is not supplied. 
+ A default sbp, which is a pivot balance, will be applied.")
+      sbp <- build.sbp(parts = parts)
+   }
     if (isFALSE(inherits(sbp, "matrix"))) {
       stop(sprintf("sbp is a '%s' but must be a matrix.",
                    paste(class(sbp), collapse = " ")))
@@ -212,7 +214,7 @@ complr <- function(data,
       colnames(tilr)  <- paste0("ilr", seq_len(ncol(tilr)))
     }
     
-    # ALR 
+    # ALR ---------------
     if (identical(transform, "alr")) {
       
       talr <- alr(tcomp)
@@ -224,7 +226,7 @@ complr <- function(data,
       colnames(talr)  <- paste0("alr", seq_len(ncol(talr)))
     }
     
-    # CLR 
+    # CLR ---------------
     if (identical(transform, "clr")) {
       
       tclr <- clr(tcomp)
@@ -269,6 +271,7 @@ complr <- function(data,
     class = "complr"
   )
   out
+
 }
 
 #' Indices from a (dataset of) Multilevel Composition(s) (deprecated.)

@@ -33,7 +33,7 @@ mean.complr <- function(x,
                        weight = weight)
   
   mean_comp <- do.call(rbind, lapply(stats[c("comp", "between_comp", "within_comp")], "[[", "mean"))
-  mean_lr <- do.call(rbind, lapply(stats[c("logratio", "between_logratio", "within_logratio")], function(x) x["Mean",]))
+  mean_lr   <- do.call(rbind, lapply(stats[c("logratio", "between_logratio", "within_logratio")], function(x) x["Mean",]))
   
   out <- list(mean_comp = mean_comp,
               mean_lr = mean_comp)
@@ -44,16 +44,14 @@ mean.complr <- function(x,
 #' 
 #' @inheritParams mean.complr
 #' 
-#' @examples
-#' cilr <- complr(data = mcompd, sbp = sbp, 
-#'                 parts = c("TST", "WAKE", "MVPA", "LPA", "SB"), 
-#'                 idvar = "ID")
-#' var.complr(cilr)
+#' @importFrom compositions var
+#' 
+#' @method var complr
 #' @export
 var.complr <- function(x,
                        weight = c("equal", "proportional"),
                        ...) {
-  
+
   stats <- .get.complr(object = x,
                        weight = weight)
   
