@@ -39,9 +39,9 @@ summary.complr <- function(object,
   )
   out$data <- list(composition_parts = object$parts,
                    logratios         = paste0(object$transform, seq_len(length(object$parts) - 1)),
-                   idvar             = if(exists("object$idvar")) (object$idvar) else (NULL),
+                   idvar             = if(!is.null(object$idvar)) (object$idvar) else (NULL),
                    nobs              = nrow(object$data),
-                   ngrps             = if(exists("object$idvar")) (length(unique(object$data[[object$idvar]]))) else (nrow(object$data))
+                   ngrps             = if(!is.null(object$idvar)) (length(unique(object$data[[object$idvar]]))) else (nrow(object$data))
   )
   
   out$geometry <- list(composition_geometry = class(object$comp),
@@ -273,6 +273,10 @@ summary.substitution <- function(object, delta, to, from,
                                  ref, level,
                                  digits = 2, ...) { 
   
+  if(isFALSE(object$summary)) {
+    stop("The 'summary' method is currently not available for substitution draws.")
+  }
+  
   if (isTRUE(missing(delta))) {
     delta <- object$delta
   } else {
@@ -318,13 +322,10 @@ summary.substitution <- function(object, delta, to, from,
                 rbindlist)
   out <- rbindlist(out, use.names = TRUE)
   
-  if (!is.null(object$comparison)) {
-    if (object$comparison == "one-to-all") {
-      out <- out[abs(Delta) %in% delta & Level %in% level & Reference %in% ref & (To %in% to | From %in% to)]
-      out[, Delta := abs(Delta)]
-    }
-  }
-  else {
+  if (object$comparison == "one-to-all") {
+    out <- out[abs(Delta) %in% delta & Level %in% level & Reference %in% ref & (To %in% to | From %in% to)]
+    out[, Delta := abs(Delta)]
+  } else {
     out <- out[Delta %in% delta & Level %in% level & Reference %in% ref & To %in% to & From %in% from]
   }
   

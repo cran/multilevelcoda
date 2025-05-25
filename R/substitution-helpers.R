@@ -20,7 +20,7 @@ is.substitution <- function(x) {
 #' @param level A character value specifying the level of substitution
 #' @param weight The weight to use in calculation of the reference composition
 #' @param parts The parts of the composition
-#' @param summary A logical value specifying whether to summarize the results
+#' @param aorg A logical value specifying whether to summarize the results (average over the reference grid)
 #'
 #' @seealso \code{\link{substitution}}
 #'
@@ -34,7 +34,7 @@ create_substitution <-
            level,
            weight,
            parts,
-           summary) {
+           aorg) {
     
     stopifnot(is.list(between_simple_sub) || is.null(between_simple_sub))
     stopifnot(is.list(within_simple_sub) || is.null(within_simple_sub))
@@ -56,7 +56,7 @@ create_substitution <-
       level = level,
       weight = weight,
       parts = parts,
-      summary = summary
+      aorg = aorg
     )
     
     class(out) <- "substitution"
@@ -436,8 +436,8 @@ NULL
 # Grandmean Between-person Substitution model
 .get.bsub <- function(object, delta, basesub,
                       comp0, y0, d0,
-                      summary,
-                      level, ref, scale,
+                      aorg, summary,
+                      level, ref, scale, comparison,
                       cores,
                       ...) {
   
@@ -454,7 +454,7 @@ NULL
                   .options.future = list(packages = "multilevelcoda")) %dofuture% {
                     
                     # substitution variables
-                    if (nrow(basesub) == length(object$complr$parts)*2) {
+                    if (comparison == "one-to-all") {
                       
                       # one to remaining
                       basesub_tmp <- as.data.table(basesub)
@@ -492,7 +492,7 @@ NULL
                     
                     # useful information for the final results
                     dnew[, From := rep(sub_from_var, length.out = nrow(dnew))]
-                    dnew[, To := sub_to_var]
+                    dnew[, To := rep(sub_to_var, length.out = nrow(dnew))]
                     dnew[, Delta := as.numeric(Delta)]
                     dnew[, Level := level]
                     dnew[, Reference := ref]
@@ -522,7 +522,7 @@ NULL
                     
                     # predictions
                     hout <- vector("list", length = nrow(d0))
-                    if (summary) { # unadj OR adj averaging over reference grid
+                    if (aorg) { # unadj OR adj averaging over reference grid
                       for (h in seq_len(nrow(d0))) {
                         dsub <- cbind(dnew, bilrsub, wilr0, refgrid[h, ])
                         ysub <-
@@ -538,10 +538,16 @@ NULL
                       }
                       delta_y_avg <- Reduce(`+`, hout) / length(hout)
                       
-                      suppressWarnings(posterior_delta_y <- apply(delta_y_avg, 2, function(x) describe_posterior(x, centrality = "mean", ...)))
-                      posterior_delta_y <- rbindlist(posterior_delta_y)
-                      posterior_delta_y <- cbind(posterior_delta_y[, .(Mean, CI_low, CI_high)],
-                                                 dsub[, .(Delta, From, To, Level, Reference)])
+                      # posterior summary or draws?
+                      if(summary) {
+                        suppressWarnings(posterior_delta_y <- apply(delta_y_avg, 2, function(x) describe_posterior(x, centrality = "mean", ...)))
+                        posterior_delta_y <- rbindlist(posterior_delta_y)
+                        posterior_delta_y <- cbind(posterior_delta_y[, .(Mean, CI_low, CI_high)],
+                                                   dsub[, .(Delta, From, To, Level, Reference)])
+                      } else {
+                        posterior_delta_y <- t(delta_y_avg)
+                        posterior_delta_y <- cbind(dsub[, .(Delta, From, To, Level, Reference)], posterior_delta_y)
+                      }
                       
                     } else { # adj keeping prediction at each level of reference grid
                       for (h in seq_len(nrow(d0))) {
@@ -555,15 +561,18 @@ NULL
                             summary = FALSE
                           )
                         delta_y <- ysub - y0[, h]
-                        suppressWarnings(
-                          posterior_delta_y <- apply(delta_y, 2, function(x) {
-                            describe_posterior(x, centrality = "mean", ...)
-                          }))
-                        posterior_delta_y <- rbindlist(posterior_delta_y)
-                        posterior_delta_y <- cbind(posterior_delta_y[, .(Mean, CI_low, CI_high)],
-                                                   dsub[, .(Delta, From, To, Level, Reference)],
-                                                   dsub[, colnames(refgrid) %snin% object$complr$idvar, with = FALSE])
                         
+                        # posterior summary or draws?
+                        if(summary) {
+                          suppressWarnings(posterior_delta_y <- apply(delta_y, 2, function(x) describe_posterior(x, centrality = "mean", ...)))
+                          posterior_delta_y <- rbindlist(posterior_delta_y)
+                          posterior_delta_y <- cbind(posterior_delta_y[, .(Mean, CI_low, CI_high)],
+                                                     dsub[, .(Delta, From, To, Level, Reference)])
+                        } else {
+                          posterior_delta_y <- t(delta_y)
+                          posterior_delta_y <- cbind(dsub[, .(Delta, From, To, Level, Reference)], posterior_delta_y)
+                        }
+
                         hout[[h]] <- posterior_delta_y
                       }
                       posterior_delta_y <- rbindlist(hout)
@@ -580,8 +589,8 @@ NULL
 # Grandmean Within-person Substitution model
 .get.wsub <- function(object, delta, basesub,
                       comp0, y0, d0,
-                      summary,
-                      level, ref, scale,
+                      aorg, summary,
+                      level, ref, scale, comparison,
                       cores,
                       ...) {
   
@@ -598,7 +607,7 @@ NULL
                   .options.future = list(packages = "multilevelcoda")) %dofuture% {
                     
                     # substitution variables
-                    if (nrow(basesub) == length(object$complr$parts)*2) {
+                    if (comparison == "one-to-all") {
                       
                       # one to remaining
                       basesub_tmp <- as.data.table(basesub)
@@ -636,7 +645,7 @@ NULL
                     
                     # useful information for the final results
                     dnew[, From := rep(sub_from_var, length.out = nrow(dnew))]
-                    dnew[, To := sub_to_var]
+                    dnew[, To := rep(sub_to_var, length.out = nrow(dnew))]
                     dnew[, Delta := as.numeric(Delta)]
                     dnew[, Level := level]
                     dnew[, Reference := ref]
@@ -667,7 +676,7 @@ NULL
                     
                     # predictions
                     hout <- vector("list", length = nrow(d0))
-                    if (summary) { # unadj OR adj averaging over reference grid
+                    if (aorg) { # unadj OR adj averaging over reference grid
                       for (h in seq_len(nrow(d0))) {
                         dsub <- cbind(dnew, bilr0, wilrsub, refgrid[h, ])
                         ysub <-
@@ -683,10 +692,16 @@ NULL
                       }
                       delta_y_avg <- Reduce(`+`, hout) / length(hout)
                       
-                      suppressWarnings(posterior_delta_y <- apply(delta_y_avg, 2, function(x) describe_posterior(x, centrality = "mean", ...)))
-                      posterior_delta_y <- rbindlist(posterior_delta_y)
-                      posterior_delta_y <- cbind(posterior_delta_y[, .(Mean, CI_low, CI_high)],
-                                                 dsub[, .(Delta, From, To, Level, Reference)])
+                      # posterior summary or draws?
+                      if(summary) {
+                        suppressWarnings(posterior_delta_y <- apply(delta_y_avg, 2, function(x) describe_posterior(x, centrality = "mean", ...)))
+                        posterior_delta_y <- rbindlist(posterior_delta_y)
+                        posterior_delta_y <- cbind(posterior_delta_y[, .(Mean, CI_low, CI_high)],
+                                                   dsub[, .(Delta, From, To, Level, Reference)])
+                      } else {
+                        posterior_delta_y <- t(delta_y_avg)
+                        posterior_delta_y <- cbind(dsub[, .(Delta, From, To, Level, Reference)], posterior_delta_y)
+                      }
                       
                     } else { # adj keeping prediction at each level of reference grid
                       for (h in seq_len(nrow(d0))) {
@@ -700,14 +715,17 @@ NULL
                             summary = FALSE
                           )
                         delta_y <- ysub - y0[, h]
-                        suppressWarnings(
-                          posterior_delta_y <- apply(delta_y, 2, function(x) {
-                            describe_posterior(x, centrality = "mean", ...)
-                          }))
-                        posterior_delta_y <- rbindlist(posterior_delta_y)
-                        posterior_delta_y <- cbind(posterior_delta_y[, .(Mean, CI_low, CI_high)],
-                                                   dsub[, .(Delta, From, To, Level, Reference)],
-                                                   dsub[, colnames(refgrid) %snin% object$complr$idvar, with = FALSE])
+                        
+                        # posterior summary or draws?
+                        if(summary) {
+                          suppressWarnings(posterior_delta_y <- apply(delta_y, 2, function(x) describe_posterior(x, centrality = "mean", ...)))
+                          posterior_delta_y <- rbindlist(posterior_delta_y)
+                          posterior_delta_y <- cbind(posterior_delta_y[, .(Mean, CI_low, CI_high)],
+                                                     dsub[, .(Delta, From, To, Level, Reference)])
+                        } else {
+                          posterior_delta_y <- t(delta_y)
+                          posterior_delta_y <- cbind(dsub[, .(Delta, From, To, Level, Reference)], posterior_delta_y)
+                        }
                         
                         hout[[h]] <- posterior_delta_y
                       }
@@ -724,8 +742,8 @@ NULL
 # Grandmean Simple Substitution
 .get.sub <- function(object, delta, basesub,
                      comp0, y0, d0,
-                     summary,
-                     level, ref, scale,
+                     aorg, summary,
+                     level, ref, scale, comparison,
                      cores,
                      ...) {
   
@@ -742,7 +760,7 @@ NULL
                   .options.future = list(packages = "multilevelcoda")) %dofuture% {
                     
                     # substitution variables
-                    if (nrow(basesub) == length(object$complr$parts)*2) {
+                    if (comparison == "one-to-all") {
                       
                       # one to remaining
                       basesub_tmp <- as.data.table(basesub)
@@ -804,7 +822,7 @@ NULL
                     
                     # predictions
                     hout <- vector("list", length = nrow(d0))
-                    if (summary) { # unadj OR adj averaging over reference grid
+                    if (aorg) { # unadj OR adj averaging over reference grid
                       for (h in seq_len(nrow(d0))) {
                         dsub <- cbind(dnew, ilrsub, refgrid[h, ])
                         ysub <-
@@ -820,10 +838,16 @@ NULL
                       }
                       delta_y_avg <- Reduce(`+`, hout) / length(hout)
                       
-                      suppressWarnings(posterior_delta_y <- apply(delta_y_avg, 2, function(x) describe_posterior(x, centrality = "mean", ...)))
-                      posterior_delta_y <- rbindlist(posterior_delta_y)
-                      posterior_delta_y <- cbind(posterior_delta_y[, .(Mean, CI_low, CI_high)],
-                                                 dsub[, .(Delta, From, To, Level, Reference)])
+                      # posterior summary or draws?
+                      if(summary) {
+                        suppressWarnings(posterior_delta_y <- apply(delta_y_avg, 2, function(x) describe_posterior(x, centrality = "mean", ...)))
+                        posterior_delta_y <- rbindlist(posterior_delta_y)
+                        posterior_delta_y <- cbind(posterior_delta_y[, .(Mean, CI_low, CI_high)],
+                                                   dsub[, .(Delta, From, To, Level, Reference)])
+                      } else {
+                        posterior_delta_y <- t(delta_y_avg)
+                        posterior_delta_y <- cbind(dsub[, .(Delta, From, To, Level, Reference)], posterior_delta_y)
+                      }
                       
                     } else { # adj keeping prediction at each level of reference grid
                       for (h in seq_len(nrow(d0))) {
@@ -837,14 +861,17 @@ NULL
                             summary = FALSE
                           )
                         delta_y <- ysub - y0[, h]
-                        suppressWarnings(
-                          posterior_delta_y <- apply(delta_y, 2, function(x) {
-                            describe_posterior(x, centrality = "mean", ...)
-                          }))
-                        posterior_delta_y <- rbindlist(posterior_delta_y)
-                        posterior_delta_y <- cbind(posterior_delta_y[, .(Mean, CI_low, CI_high)],
-                                                   dsub[, .(Delta, From, To, Level, Reference)],
-                                                   dsub[, colnames(refgrid) %snin% object$complr$idvar, with = FALSE])
+                        
+                        # posterior summary or draws?
+                        if(summary) {
+                          suppressWarnings(posterior_delta_y <- apply(delta_y, 2, function(x) describe_posterior(x, centrality = "mean", ...)))
+                          posterior_delta_y <- rbindlist(posterior_delta_y)
+                          posterior_delta_y <- cbind(posterior_delta_y[, .(Mean, CI_low, CI_high)],
+                                                     dsub[, .(Delta, From, To, Level, Reference)])
+                        } else {
+                          posterior_delta_y <- t(delta_y)
+                          posterior_delta_y <- cbind(dsub[, .(Delta, From, To, Level, Reference)], posterior_delta_y)
+                        }
                         
                         hout[[h]] <- posterior_delta_y
                       }
@@ -860,8 +887,8 @@ NULL
 
 # Clustermean Between-person Substitution model
 .get.bsubmargins <- function(object, delta, basesub,
-                             comp0, y0, d0,
-                             level, ref, scale,
+                             comp0, y0, d0, summary,
+                             level, ref, scale, comparison,
                              cores,
                              ...) {
   
@@ -878,7 +905,7 @@ NULL
                   .options.future = list(packages = "multilevelcoda")) %dofuture% {
                     
                     # substitution variables
-                    if (nrow(basesub) == length(object$complr$parts)*2) {
+                    if (comparison == "one-to-all") {
                       
                       # one to remaining
                       basesub_tmp <- as.data.table(basesub)
@@ -960,7 +987,7 @@ NULL
                       }
                       jout[[j]] <- rbindlist(kout)
                     }                        
-
+                    
                     jout <- rbindlist(jout)
                     jout[, Delta := as.numeric(Delta)]
                     jout[, From := rep(sub_from_var, length.out = nrow(jout))]
@@ -981,8 +1008,8 @@ NULL
 
 # Clustermean Within-person Substitution model
 .get.wsubmargins <- function(object, delta, basesub,
-                             comp0, y0, d0,
-                             level, ref, scale,
+                             comp0, y0, d0, summary,
+                             level, ref, scale, comparison,
                              cores,
                              ...) {
   
@@ -999,7 +1026,7 @@ NULL
                   .options.future = list(packages = "multilevelcoda")) %dofuture% {
                     
                     # substitution variables
-                    if (nrow(basesub) == length(object$complr$parts)*2) {
+                    if (comparison == "one-to-all") {
                       
                       # one to remaining
                       basesub_tmp <- as.data.table(basesub)
@@ -1105,8 +1132,8 @@ NULL
 
 # Clustermean Average Substitution
 .get.submargins <- function(object, delta, basesub,
-                            comp0, y0, d0,
-                            level, ref, scale,
+                            comp0, y0, d0, summary,
+                            level, ref, scale, comparison,
                             cores,
                             ...) {
   
@@ -1123,7 +1150,7 @@ NULL
                   .options.future = list(packages = "multilevelcoda")) %dofuture% {
                     
                     # substitution variables
-                    if (nrow(basesub) == length(object$complr$parts)*2) {
+                    if (comparison == "one-to-all") {
                       
                       # one to remaining
                       basesub_tmp <- as.data.table(basesub)

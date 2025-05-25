@@ -7,12 +7,14 @@
 substitution(
   object,
   delta,
-  basesub,
-  summary = TRUE,
   ref = c("grandmean", "clustermean"),
   level = c("between", "within", "aggregate"),
+  basesub,
+  aorg = TRUE,
+  summary = TRUE,
   weight = c("equal", "proportional"),
   scale = c("response", "linear"),
+  comparison = NULL,
   cores = NULL,
   ...
 )
@@ -21,19 +23,6 @@ substitution(
 \item{object}{A fitted \code{\link{brmcoda}} object.}
 
 \item{delta}{A integer, numeric value or vector indicating the amount of substituted change between compositional parts.}
-
-\item{basesub}{A base substitution.
-Can be a \code{data.frame} or \code{data.table} of the base possible substitution of compositional parts,
-which can be computed using function \code{\link{build.basesub}}.
-If \code{"one-to-all"}, all possible one-to-remaining reallocations are estimated.
-If \code{NULL}, all possible one-to-one reallocations are estimated.}
-
-\item{summary}{A logical value.
-Should the estimate at each level of the reference grid (\code{FALSE})
-or their average (\code{TRUE}) be returned?
-Default is \code{TRUE}.
-Only applicable for model with covariates in addition to
-the isometric log-ratio coordinates (i.e., adjusted model).}
 
 \item{ref}{Either a character value or vector or a dataset.
 Can be \code{"grandmean"} and/or \code{"clustermean"}, or
@@ -46,6 +35,22 @@ Single level models are default to \code{"grandmean"}.}
 Should the estimate of multilevel models focus on the \code{"between"} and/or \code{"within"} or \code{"aggregate"} variance?
 Single-level models are default to \code{"aggregate"}.}
 
+\item{basesub}{A base substitution.
+Can be a \code{data.frame} or \code{data.table} of the base possible substitution of compositional parts,
+which can be computed using function \code{\link{build.basesub}}.
+If \code{"one-to-all"}, all possible one-to-remaining reallocations are estimated.
+If \code{NULL}, all possible one-to-one reallocations are estimated.}
+
+\item{aorg}{A logical value to obtain (a)verage prediction (o)ver the (r)eference (g)rid.
+Should the estimate at each level of the reference grid (\code{FALSE})
+or their average (\code{TRUE}) be returned?
+Default is \code{TRUE}.
+Only applicable for model with covariates in addition to
+the isometric log-ratio coordinates (i.e., adjusted model).}
+
+\item{summary}{A logical value to obtain summary statistics instead of the raw values. Default is \code{TRUE}.
+Currently only support outputing raw values for model using grandmean as reference composition.}
+
 \item{weight}{A character value specifying the weight to use in calculation of the reference composition.
 If \code{"equal"}, give equal weight to units (e.g., individuals).
 If \code{"proportional"}, weights in proportion to the frequencies of units being averaged
@@ -56,6 +61,8 @@ Default to \code{"equal"} for \code{ref = "grandmean"} and \code{"proportional"}
 If \code{"response"}, results are returned on the scale of the response variable.
 If \code{"linear"}, results are returned on the scale of the linear predictor term,
 that is without applying the inverse link function or other transformations.}
+
+\item{comparison}{internally used only.}
 
 \item{cores}{Number of cores to use when executing the chains in parallel,
 we recommend setting the \code{mc.cores} option
@@ -96,8 +103,8 @@ if(requireNamespace("cmdstanr")){
                   chain = 1, iter = 500, backend = "cmdstanr")
                   
   # one to one reallocation at between and within-person levels
-  sub1 <- substitution(object = fit1, delta = 5, level = c("between", "within"))
-  summary(sub1) 
+  sub1 <- substitution(object = fit1, delta = 5, level = c("between"))
+  summary(sub1)
   
   # one to all reallocation at between and within-person levels
   sub2 <- substitution(object = fit1, delta = 5, level = c("between", "within"), 

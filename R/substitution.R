@@ -8,26 +8,28 @@
 #'
 #' @param object A fitted \code{\link{brmcoda}} object.
 #' @param delta A integer, numeric value or vector indicating the amount of substituted change between compositional parts.
-#' @param basesub A base substitution. 
-#' Can be a \code{data.frame} or \code{data.table} of the base possible substitution of compositional parts,
-#' which can be computed using function \code{\link{build.basesub}}.
-#' If \code{"one-to-all"}, all possible one-to-remaining reallocations are estimated.
-#' If \code{NULL}, all possible one-to-one reallocations are estimated.
 #' @param ref Either a character value or vector or a dataset.
 #' Can be \code{"grandmean"} and/or \code{"clustermean"}, or
 #' a \code{data.frame} or \code{data.table} of user's specified reference grid consisting
 #' of combinations of covariates over which predictions are made.
 #' User's specified reference grid is only possible for simple substitution.
 #' Single level models are default to \code{"grandmean"}.
-#' @param summary A logical value.
+#' @param level A character string or vector.
+#' Should the estimate of multilevel models focus on the \code{"between"} and/or \code{"within"} or \code{"aggregate"} variance?
+#' Single-level models are default to \code{"aggregate"}.
+#' @param basesub A base substitution. 
+#' Can be a \code{data.frame} or \code{data.table} of the base possible substitution of compositional parts,
+#' which can be computed using function \code{\link{build.basesub}}.
+#' If \code{"one-to-all"}, all possible one-to-remaining reallocations are estimated.
+#' If \code{NULL}, all possible one-to-one reallocations are estimated.
+#' @param aorg A logical value to obtain (a)verage prediction (o)ver the (r)eference (g)rid.
 #' Should the estimate at each level of the reference grid (\code{FALSE})
 #' or their average (\code{TRUE}) be returned?
 #' Default is \code{TRUE}.
 #' Only applicable for model with covariates in addition to
 #' the isometric log-ratio coordinates (i.e., adjusted model).
-#' @param level A character string or vector.
-#' Should the estimate of multilevel models focus on the \code{"between"} and/or \code{"within"} or \code{"aggregate"} variance?
-#' Single-level models are default to \code{"aggregate"}.
+#' @param summary A logical value to obtain summary statistics instead of the raw values. Default is \code{TRUE}.
+#' Currently only support outputing raw values for model using grandmean as reference composition.
 #' @param weight A character value specifying the weight to use in calculation of the reference composition.
 #' If \code{"equal"}, give equal weight to units (e.g., individuals).
 #' If \code{"proportional"}, weights in proportion to the frequencies of units being averaged
@@ -41,6 +43,7 @@
 #' If \code{"response"}, results are returned on the scale of the response variable.
 #' If \code{"linear"}, results are returned on the scale of the linear predictor term,
 #' that is without applying the inverse link function or other transformations.
+#' @param comparison internally used only.
 #' @param ... currently ignored.
 #'
 #' @return A list containing the results of multilevel compositional substitution model.
@@ -70,8 +73,8 @@
 #'                   chain = 1, iter = 500, backend = "cmdstanr")
 #'                   
 #'   # one to one reallocation at between and within-person levels
-#'   sub1 <- substitution(object = fit1, delta = 5, level = c("between", "within"))
-#'   summary(sub1) 
+#'   sub1 <- substitution(object = fit1, delta = 5, level = c("between"))
+#'   summary(sub1)
 #'   
 #'   # one to all reallocation at between and within-person levels
 #'   sub2 <- substitution(object = fit1, delta = 5, level = c("between", "within"), 
@@ -88,12 +91,14 @@
 #' @export
 substitution <- function(object,
                          delta,
-                         basesub,
-                         summary = TRUE,
                          ref = c("grandmean", "clustermean"),
                          level = c("between", "within", "aggregate"),
+                         basesub,
+                         aorg = TRUE,
+                         summary = TRUE,
                          weight = c("equal", "proportional"),
                          scale = c("response", "linear"),
+                         comparison = NULL,
                          cores = NULL,
                          ...) {
   
@@ -142,42 +147,53 @@ substitution <- function(object,
     weight <- "equal"
   }
   
-  # # set default ref to be grandmean
-  # if (identical(ref, "clustermean")) {
-  #   ref <- "clustermean"
-  # } else {
-  #   ref <- "grandmean"
-  # }
+  # set default ref to be grandmean
+  if (identical(ref, "clustermean")) {
+    ref <- "clustermean"
+  } else {
+    ref <- "grandmean"
+  }
   
+  # currently not allowed exporting draws for cluster mean as ref
+  if(identical(ref, "clustermean")) {
+    if (isFALSE(summary)) {
+      stop("Currently can't output raw values when 'clustermean' is used as reference composition.")
+    }
+  }
+
   # base substitution
   if (missing(basesub)) {
     basesub <- build.basesub(parts = object$complr$parts)
     names(basesub) <- object$complr$parts
     comparison <- "one-to-one"
     
-  } else if(isFALSE(missing(basesub))) {
-    if (basesub == "one-to-all") {
+  } 
+  else if(isFALSE(missing(basesub))) {
+      if (inherits(basesub, "character") && identical(basesub, "one-to-all")) {
       basesub <- build.basesub(parts = object$complr$parts, comparison = "one-to-all")
+      names(basesub) <- object$complr$parts
       comparison <- "one-to-all"
       
-    }
-    else {
-      if (isFALSE(identical(ncol(basesub), length(object$complr$parts)))) {
-        stop(sprintf(
-          "The number of columns in 'basesub' (%d) should be the same as the compositional parts in 'parts' (%d).",
-          ncol(basesub),
-          length(object$complr$parts)
-        ))
-      }
-      if (isFALSE(identical(colnames(basesub), object$complr$parts))) {
-        stop(sprintf(
-          "The names of compositional parts should be the same in 'basesub' (%s) and 'parts' (%s).",
-          colnames(basesub),
-          object$complr$parts
-        ))
-      }
+    } else if (inherits(basesub, c("data.table", "data.frame", "matrix"))) {
+      stop("Currently not support customised base substitution, this will be implemented in the future.")
+      
+      # if (isFALSE(identical(ncol(basesub), length(object$complr$parts)))) {
+      #   stop(sprintf(
+      #     "The number of columns in 'basesub' (%d) should be the same as the compositional parts in 'parts' (%d).",
+      #     ncol(basesub),
+      #     length(object$complr$parts)
+      #   ))
+      # }
+      # if (isFALSE(identical(colnames(basesub), object$complr$parts))) {
+      #   stop(sprintf(
+      #     "The names of compositional parts should be the same in 'basesub' (%s) and 'parts' (%s).",
+      #     colnames(basesub),
+      #     object$complr$parts
+      #   ))
+      # }
     }
   }
+  
   # what type of model is being estimated
   model_fixef <- rownames(fixef(object))
   model_ranef <- if(dim(object$model$ranef)[1] > 0) (names(ranef(object))) else (NULL)
@@ -270,11 +286,13 @@ substitution <- function(object,
         object = object,
         delta = delta,
         basesub = basesub,
+        aorg = aorg,
         summary = summary,
         ref = "grandmean",
         level = "between",
         weight = weight,
         scale = scale,
+        comparison = comparison,
         cores = cores,
         ...)
     }
@@ -283,11 +301,13 @@ substitution <- function(object,
         object = object,
         delta = delta,
         basesub = basesub,
+        aorg = aorg,
         summary = summary,
         ref = ref,
         level = "between",
         weight = weight,
         scale = scale,
+        comparison = comparison,
         cores = cores,
         ...)
     }
@@ -297,10 +317,12 @@ substitution <- function(object,
           object = object,
           delta = delta,
           basesub = basesub,
+          summary = summary,
           ref = "clustermean",
           level = "between",
           weight = weight,
           scale = scale,
+          comparison = comparison,
           cores = cores,
           ...)
     }
@@ -313,11 +335,13 @@ substitution <- function(object,
         object = object,
         delta = delta,
         basesub = basesub,
+        aorg = aorg,
         summary = summary,
         ref = "grandmean",
         level = "within",
         weight = weight,
         scale = scale,
+        comparison = comparison,
         cores = cores,
         ...)
     }
@@ -326,11 +350,13 @@ substitution <- function(object,
         object = object,
         delta = delta,
         basesub = basesub,
+        aorg = aorg,
         summary = summary,
         ref = ref,
         level = "within",
         weight = weight,
         scale = scale,
+        comparison = comparison,
         cores = cores,
         ...)
     }
@@ -340,10 +366,12 @@ substitution <- function(object,
           object = object,
           delta = delta,
           basesub = basesub,
+          summary = summary,
           ref = "clustermean",
           level = "within",
           weight = weight,
           scale = scale,
+          comparison = comparison,
           cores = cores,
           ...)
     }
@@ -356,11 +384,13 @@ substitution <- function(object,
         object = object,
         delta = delta,
         basesub = basesub,
+        aorg = aorg,
         summary = summary,
         ref = "grandmean",
         level = "aggregate",
         weight = weight,
         scale = scale,
+        comparison = comparison,
         cores = cores,
         ...)
     }
@@ -369,11 +399,13 @@ substitution <- function(object,
         object = object,
         delta = delta,
         basesub = basesub,
+        aorg = aorg,
         summary = summary,
         ref = ref,
         level = "aggregate",
         weight = weight,
         scale = scale,
+        comparison = comparison,
         cores = cores,
         ...)
     }
@@ -383,10 +415,12 @@ substitution <- function(object,
           object = object,
           delta = delta,
           basesub = basesub,
+          summary = summary,
           ref = "clustermean",
           level = "aggregate",
           weight = weight,
           scale = scale,
+          comparison = comparison,
           cores = cores,
           ...)
     }
@@ -407,6 +441,7 @@ substitution <- function(object,
       level = level,
       weight = weight,
       parts = object$complr$parts,
+      aorg = aorg,
       summary = summary,
       comparison = if(exists("comparison")) (comparison) else (NULL)),
     class = "substitution")

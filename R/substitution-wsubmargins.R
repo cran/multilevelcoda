@@ -34,10 +34,12 @@
 wsubmargins <- function (object,
                          delta,
                          basesub,
+                         summary = TRUE,
                          ref = "clustermean",
                          level = "within",
                          weight = "proportional",
                          scale = c("response", "linear"),
+                         comparison = "one-to-one",
                          cores = NULL,
                          ...) {
   
@@ -76,6 +78,7 @@ wsubmargins <- function (object,
   out <- .get.wsubmargins(
     object = object,
     basesub = basesub,
+    summary = summary,
     delta = delta,
     comp0 = comp0,
     d0 = d0,
@@ -83,6 +86,7 @@ wsubmargins <- function (object,
     level = level,
     ref = ref,
     scale = scale,
+    comparison = comparison,
     cores = cores,
     ...
   )

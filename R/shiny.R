@@ -58,23 +58,29 @@ launch_shinystan.brmcoda <- function(object, ...) {
 #' @importFrom DT dataTableOutput
 #' @importFrom DT DTOutput
 #' @importFrom utils data
+#' @importFrom fs path_package
+#' @importFrom htmltools a
 #' @export
 multilevelcoda_sim <- function() {
-
+  
   # shiny input
-  sim <- data(sim, envir = environment())
-
+  tryCatch({
+    data("sim", package = "multilevelcoda", envir = environment())
+  }, error = function(e) {
+    message("Please install the package multilevelcoda first.")
+  })
+  
   brmcoda_tab <- sim[["brmcoda_tab"]]
   sub_tab <- sim[["sub_tab"]]
-
+  
   brmcoda_d3 <- sim[["brmcoda_plot"]][["brmcoda_d3"]]
   brmcoda_d4 <- sim[["brmcoda_plot"]][["brmcoda_d4"]]
   brmcoda_d5 <- sim[["brmcoda_plot"]][["brmcoda_d5"]]
-
+  
   sub_d3 <- sim[["sub_plot"]][["sub_d3"]]
   sub_d4 <- sim[["sub_plot"]][["sub_d4"]]
   sub_d5 <- sim[["sub_plot"]][["sub_d5"]]
-
+  
   ## theme
   shinyOptions(bslib = TRUE)
   theme <- bs_theme(
@@ -105,59 +111,59 @@ multilevelcoda_sim <- function() {
       "navbar-light-bg" = "#665C58", #90766B
       "navbar-default-link-hover-bg" = "#708885",
       "navbar-light-panel-bg" = "#A1B2C2",
-
+      
       "table-bg" = "#EFE3E0",   #E5E8E1 DFD7D6
       "table-accent-bg" = "#fff",
       "table-light-striped-bg" = "#FAF7F3",
       "table-light-striped-bg-active" = "#CFDAE2",
       "table-bg-hover" = "#DFD7D6",
-
+      
       "pagination-color" = "#3d251e",
       "pagination-bg" = "#BEC7B4",
       "pagination-border-color" = "#BEC7B4",
-
+      
       "pagination-hover-colour" = "#FAF7F3",
       "pagination-hover-bg" = "#708885",
       "pagination-hover-border-color" = "#708885",
-
+      
       "pagination-active-bg" = "#8DA290",
       "pagination-active-border-color" = "#8DA290",
-
+      
       "pagination-disabled-bg" = "#5A6367",
       "pagination-disabled-border-color" = "#5A6367",
       "pagination-disabled-color" = "#708885",
-
+      
       "navbar-light-table-striped-color" = "#1C1718",
       "navbar-light-table-striped-bg" = "#CFDAE2",
       "navbar-light-table-hover-bg" = "#CFDAE2",
-
+      
       "dropdown-bg" = "#fff",
-
+      
       # "table-striped-bg" = "#FAF7F3",
       # "table-hover-bg-factor" = "1.25",
       "btn-default-bg" = "#A1B2C2",
       "btn-success-bg" = "#A1B2C2",
       "input-bg" = "#fff",
-
-
+      
+      
       "legend-color" = "#DCD5CE",
       "border-primary" = "#3d251e",
       "bg-primary" = "#3d251e",
-
-
-
+      
+      
+      
       "table-active-bg" = "#F0DBDE  !important"
       # "bs-table-hover-bg" = "#CFDAE2",
       #
       # "bs-table-bg-accent" = "#CFDAE2"
-
+      
       # "inverse-bg" = "#DCD5CE"
-
+      
     )
-
+  
   # shiny server  ----------------------
   server <- function(input, output, session) {
-
+    
     # Summary Statistics -------------------
     ## brmcoda tab ---------------
     output$simsum_brmcoda_table <- DT::renderDataTable(DT::datatable({
@@ -206,7 +212,7 @@ multilevelcoda_sim <- function() {
       if (input$D_brmcoda != "All") {
         brmcoda_tab <- brmcoda_tab[D == input$D_brmcoda]
       }
-
+      
       brmcoda_tab <-
         brmcoda_tab[by %in% par_brmcoda &
                       Stat == input$stat_brmcoda, .(Stat,
@@ -218,11 +224,11 @@ multilevelcoda_sim <- function() {
                                                     # sd_ID_Intercept,
                                                     sigma,
                                                     OnTarget)]
-
+      
       # brmcoda_tab[] <- lapply(brmcoda_tab, function(x) if(is.numeric(x)) round(x, 2) else x)
-
+      
       brmcoda_tab
-
+      
     }, options = list(
       info = T,
       searching = T,
@@ -230,10 +236,10 @@ multilevelcoda_sim <- function() {
       autoWidth = F,
       scrollX = T
     )))
-
+    
     ## substitution tab ------------
     output$simsum_sub_table <- DT::renderDataTable(DT::datatable({
-
+      
       if (input$rint_sd_sub == "medium" & input$res_sd1_sub == "medium") {
         sub_tab <- sub_tab[condition == "base"]
       } else if (input$rint_sd_sub == "medium" & input$res_sd1_sub == "small") {
@@ -266,7 +272,7 @@ multilevelcoda_sim <- function() {
       } else if (input$level_sub == "Within") {
         sub_tab <- sub_tab[Level == "within"]
       }
-
+      
       sub_tab <-
         sub_tab[Stat == input$stat_sub, .(Stat,
                                           Estimates,
@@ -277,11 +283,11 @@ multilevelcoda_sim <- function() {
                                           # sd_ID_Intercept,
                                           sigma,
                                           OnTarget)]
-
+      
       # sub_tab[] <- lapply(sub_tab, function(x) if(is.numeric(x)) round(x, 2) else x)
-
+      
       sub_tab
-
+      
     }, options = list(
       info = T,
       searching = T,
@@ -289,13 +295,13 @@ multilevelcoda_sim <- function() {
       autoWidth = F,
       scrollX = T
     )))
-
+    
     # Summary Plots -------------------
     # ranges_brmcoda <- reactiveValues(x = NULL, y = NULL)
-
+    
     ## brmcoda plot ---------------
     output$simsum_brmcoda_plot <- renderPlotly({
-
+      
       if (input$rint_sd_brmcoda_plot == "medium" & input$res_sd1_brmcoda_plot == "medium") {
         if (input$D_brmcoda_plot == 3) {
           .par_plot(brmcoda_d3[Stat == input$stat_brmcoda_plot & condition == "base"], shiny = TRUE)
@@ -337,12 +343,12 @@ multilevelcoda_sim <- function() {
           .par_plot(brmcoda_d5[Stat == input$stat_brmcoda_plot & condition == "RElarge_RESsmall"], shiny = TRUE)
         }
       }
-
+      
     })
-
+    
     ## substitution plot ---------------
     output$simsum_sub_plot <- renderPlotly({
-
+      
       if (input$rint_sd_sub_plot == "medium" & input$res_sd1_sub_plot == "medium") {
         if (input$D_sub_plot == 3) {
           .par_plot(sub_d3[Stat == input$stat_sub_plot & condition == "base"], shiny = TRUE)
@@ -384,17 +390,16 @@ multilevelcoda_sim <- function() {
           .par_plot(sub_d5[Stat == input$stat_sub_plot & condition == "RElarge_RESsmall"], shiny = TRUE)
         }
       }
-
+      
     })
-
+    
     output$coda <- renderImage({
-      filename <- normalizePath(file.path('./inst',
-                                          paste('coda.png')))
-
+      filename <- normalizePath(path_package(package = 'multilevelcoda', "coda.png"))
+      
       # Return a list containing the filename and alt text
       list(src = filename,
            heigh = "40px", width = "50px")
-
+      
     }, deleteFile = FALSE)
     # observe(session$setCurrentTheme(
     #   if (isTRUE(input$dark_mode)) dark else light
@@ -410,9 +415,9 @@ multilevelcoda_sim <- function() {
     #     ranges_brmcoda$y <- NULL
     #   }
     # })
-
+    
   }
-
+  
   # shiny ui -----------------
   ui <- fluidPage(
     theme = floras,
@@ -460,14 +465,14 @@ multilevelcoda_sim <- function() {
     br(),
     br(),
     br(),
-
+    
     # headerPanel(title = span(img(src = "multilevelcoda-sims-shiny/www/coda.png", height = 35), "test")),
-
+    
     # .tabs-above > .nav > li[class=active] > a {
     #   background-color: #6171a9;
     #     color: #FFF;
     # }
-
+    
     # .dataTables_wrapper .dataTables_length {
     #   float: right;}
     # .dataTables_wrapper .dataTables_filter {
@@ -478,32 +483,33 @@ multilevelcoda_sim <- function() {
     # theme = shiny::bootstrapLib(),
     # tags$head(includeCSS("multilevelcoda-sim-shiny/www/florastheme.css")),
     # checkboxInput("dark_mode", "Dark mode", FALSE),
-
+    
     navbarPage(
       theme = floras,
       position = "fixed-top",
       # title(div(img(src = "coda.png")),
-      "multilevelcoda Simulation Study",
+      title = "multilevelcoda Simulation Study",
+      footer = a("You can also read a summary of this simulation study in our publication here.", href = "https://doi.org/10.1037/met0000750"),
       # nav_item(img(src = 'coda.png'), fillable = FALSE, height="30px"),
       # imageOutput("coda.png")),
       ## Simulation Summary -----------------------------
       nav_menu(
         "Summary Statistics",
         # icon = icon("table"),
-
+        
         ### brmcoda ------------------
         nav_panel(
           "Bayesian Compositional Multilevel",
           fluid = TRUE,
           # titlePanel("Simulation Condition"),
-
+          
           sidebarLayout(
             sidebarPanel(
               width = 3,
               style = "height:740px",
               h5("Simulation Condition"),
               br(),
-
+              
               selectInput("N_brmcoda",
                           "Number of individuals (N):",
                           c("All",
@@ -592,7 +598,7 @@ multilevelcoda_sim <- function() {
             )
           )
         ),
-
+        
         ### substitution ------------------
         nav_panel(
           "Bayesian Compositional Multilevel Substitution",
@@ -605,7 +611,7 @@ multilevelcoda_sim <- function() {
               style = "height:740px",
               h5("Simulation Condition"),
               br(),
-
+              
               selectInput("N_sub",
                           "Number of individuals (N):",
                           c("All",
@@ -652,7 +658,7 @@ multilevelcoda_sim <- function() {
             ),
             mainPanel(
               width = 9,
-
+              
               fluidRow(column(
                 12,
                 selectInput(
@@ -668,7 +674,7 @@ multilevelcoda_sim <- function() {
                   width = "100%"
                 )
               )),
-
+              
               fluidRow(
                 column(
                   6,
@@ -741,26 +747,26 @@ multilevelcoda_sim <- function() {
             )
           )
         )
-
-
+        
+        
       ),
       ## Simulation Plots -----------------------------
       nav_menu(
         "Summary Plots",
         # icon = icon("chart-line", lib = "font-awesome"),
-
+        
         ### brmcoda plots ------------------
         nav_panel(
           "Bayesian Compositional Multilevel Parameters",
           fluid = TRUE,
-
+          
           sidebarLayout(
             sidebarPanel(
               width = 3,
               style = "height:740px",
               h5("Simulation Condition"),
               br(),
-
+              
               selectInput(
                 "N_brmcoda_plot",
                 "Number of individuals (N):",
@@ -783,7 +789,7 @@ multilevelcoda_sim <- function() {
                 inline = TRUE,
                 width = "100%"
               ),
-
+              
               selectInput(
                 "rint_sd_brmcoda_plot",
                 "Random Intercept variance:",
@@ -820,7 +826,7 @@ multilevelcoda_sim <- function() {
             ),
             mainPanel(
               width = 9,
-
+              
               fluidRow(column(
                 12,
                 selectInput(
@@ -836,7 +842,7 @@ multilevelcoda_sim <- function() {
                   width = "100%"
                 )
               )),
-
+              
               fluidRow(column(
                 12,
                 selectInput(
@@ -866,20 +872,20 @@ multilevelcoda_sim <- function() {
             )
           )
         ),
-
+        
         ### substitution plots ------------------
         nav_panel(
           "Bayesian Compositional Multilevel Substitution Estimates",
           fluid = TRUE,
           # icon = icon("arrow-right-arrow-left", lib = "font-awesome"),
-
+          
           sidebarLayout(
             sidebarPanel(
               width = 3,
               style = "height:740px",
               h5("Simulation Condition"),
               br(),
-
+              
               selectInput(
                 "N_sub_plot",
                 "Number of individuals (N):",
@@ -901,7 +907,7 @@ multilevelcoda_sim <- function() {
                 inline = TRUE,
                 width = "100%"
               ),
-
+              
               selectInput(
                 "rint_sd_sub_plot",
                 "Random Intercept variance:",
@@ -933,7 +939,7 @@ multilevelcoda_sim <- function() {
             ),
             mainPanel(
               width = 9,
-
+              
               fluidRow(column(
                 12,
                 selectInput(
@@ -949,7 +955,7 @@ multilevelcoda_sim <- function() {
                   width = "100%"
                 )
               )),
-
+              
               fluidRow(
                 column(
                   6,
@@ -1025,16 +1031,16 @@ multilevelcoda_sim <- function() {
           )
         )
       ),
-
+      
       nav_spacer(),
       # nav_item(icon = icon("arrow-right-arrow-left", lib = "font-awesome")),
       nav_item(imageOutput("coda", height = "50px"), fillable = FALSE),
-
-
+      
+      
     )
   )
   # run app ------------------------
   shinyApp(ui = ui, server = server)
-
-
+  
+  
 }

@@ -8,10 +8,12 @@ submargins(
   object,
   delta,
   basesub,
+  summary = TRUE,
   ref = "clustermean",
   level = "aggregate",
   weight = "proportional",
   scale = c("response", "linear"),
+  comparison = "one-to-one",
   cores = NULL,
   ...
 )
@@ -26,6 +28,9 @@ Can be a \code{data.frame} or \code{data.table} of the base possible substitutio
 which can be computed using function \code{\link{build.basesub}}.
 If \code{"one-to-all"}, all possible one-to-remaining reallocations are estimated.
 If \code{NULL}, all possible one-to-one reallocations are estimated.}
+
+\item{summary}{A logical value to obtain summary statistics instead of the raw values. Default is \code{TRUE}.
+Currently only support outputing raw values for model using grandmean as reference composition.}
 
 \item{ref}{Either a character value or vector or a dataset.
 Can be \code{"grandmean"} and/or \code{"clustermean"}, or
@@ -48,6 +53,8 @@ Default to \code{"equal"} for \code{ref = "grandmean"} and \code{"proportional"}
 If \code{"response"}, results are returned on the scale of the response variable.
 If \code{"linear"}, results are returned on the scale of the linear predictor term,
 that is without applying the inverse link function or other transformations.}
+
+\item{comparison}{internally used only.}
 
 \item{cores}{Number of cores to use when executing the chains in parallel,
 we recommend setting the \code{mc.cores} option
