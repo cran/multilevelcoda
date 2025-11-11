@@ -5,7 +5,7 @@
 \alias{predict}
 \title{Draws from the Posterior Predictive Distribution}
 \usage{
-\method{predict}{brmcoda}(object, scale = c("linear", "response"), summary = TRUE, ...)
+\method{predict}{brmcoda}(object, scale = c("linear", "response"), parts = 1, ...)
 }
 \arguments{
 \item{object}{An object of class \code{brmcoda}.}
@@ -17,8 +17,10 @@ results are returned on the log-ratio scale.
 If \code{"response"}, results are returned on the compositional scale
 of the response variable.}
 
-\item{summary}{Should summary statistics be returned
-instead of the raw values? Default is \code{TRUE}.}
+\item{parts}{Only for models with compositional response
+A optional character string specifying names of compositional parts that make up the response in \code{brmcoda} model.
+This should correspond to a single set of names of compositional parts specified
+in the \code{complr} object. Default to the first composition in the \code{complr} object.}
 
 \item{...}{Further arguments passed to \code{\link[brms:predict.brmsfit]{predict.brmsfit}}
 that control additional aspects of prediction.}
@@ -54,28 +56,33 @@ both methods averaged across draws should be very similar.
 \donttest{
 if(requireNamespace("cmdstanr")){
   ## fit a model
-  cilr <- complr(data = mcompd, sbp = sbp,
+  x <- complr(data = mcompd, sbp = sbp,
                  parts = c("TST", "WAKE", "MVPA", "LPA", "SB"),
                  idvar = "ID", total = 1440)
-  
-  m1 <- brmcoda(complr = cilr,
-                formula = Stress ~ bilr1 + bilr2 + bilr3 + bilr4 +
-                  wilr1 + wilr2 + wilr3 + wilr4 + (1 | ID),
+
+  m1 <- brmcoda(complr = x,
+                formula = Stress ~ bz1_1 + bz2_1 + bz3_1 + bz4_1 +
+                                   wz1_1 + wz2_1 + wz3_1 + wz4_1 + (1 | ID),
                 chain = 1, iter = 500,
                 backend = "cmdstanr")
-  
+
   ## predicted responses
   pred <- predict(m1)
   head(pred)
-  
+
   ## fit a model with compositional outcome
-  m2 <- brmcoda(complr = cilr,
-                formula = mvbind(ilr1, ilr2, ilr3, ilr4) ~ Stress + Female + (1 | ID),
+  m2 <- brmcoda(complr = x,
+                formula = mvbind(z1_1, z2_1, z3_1, z4_1) ~ 
+                          bz1_1 + bz2_1 + bz3_1 + bz4_1 + Female + (1 | ID),
                 chain = 1, iter = 500,
                 backend = "cmdstanr")
-  
+
+  ## predicted responses on ilr scale
+  predilr <- predict(m2, scale = "linear")
+  head(predilr)
+
   ## predicted responses on compositional scale
-  predcomp <- predict(m2, scale = "linear")
+  predcomp <- predict(m2, scale = "response")
   head(predcomp)
 }}
 }

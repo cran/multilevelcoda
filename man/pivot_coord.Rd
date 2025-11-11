@@ -4,7 +4,13 @@
 \alias{pivot_coord}
 \title{Estimate pivot balance coordinates}
 \usage{
-pivot_coord(object, summary = TRUE, method = c("rotate", "refit"), ...)
+pivot_coord(
+  object,
+  summary = TRUE,
+  method = c("rotate", "refit"),
+  parts = 1,
+  ...
+)
 }
 \arguments{
 \item{object}{An object of class \code{brmcoda}.}
@@ -16,30 +22,37 @@ Should the pivot balance coordinates be estimated by \code{"rotate"} the sequent
 using the same \code{brmcoda} object or \code{"refit"} the \code{brmcoda} object?
 Default is \code{"rotate"}.}
 
-\item{...}{currently ignored.}
+\item{parts}{A optional character string specifying names of compositional parts that should be considered
+in the substitution analysis. This should correspond to a single set of names of compositional parts specified
+in the \code{complr} object. Default to the first composition in the \code{complr} object.}
+
+\item{...}{Further arguments passed to \code{\link[brms:posterior_summary]{posterior_summary}}.}
 }
 \value{
-A list of \code{\link{brmcoda}} for each pivot balance coordinate.
+Estimated pivot balance coordinates representing the
+effect of increasing one compositional part relative to the remaining compositional parts.
 }
 \description{
-Estimate pivot balance coordinates
+This function estimates pivot balance coordinates for each compositional part by
+either \code{"rotate"} the sequential binary partition using the same \code{brmcoda} object
+or \code{"refit"} the \code{brmcoda} object.
 }
 \examples{
 \donttest{
 if(requireNamespace("cmdstanr")){
-  cilr <- complr(data = mcompd, sbp = sbp,
+  x <- complr(data = mcompd, sbp = sbp,
                  parts = c("TST", "WAKE", "MVPA", "LPA", "SB"), idvar = "ID",
                  total = 1440)
   
   # inspects ILRs before passing to brmcoda
-  names(cilr$between_logratio)
-  names(cilr$within_logratio)
-  names(cilr$logratio)
+  names(x$between_logratio)
+  names(x$within_logratio)
+  names(x$logratio)
   
   # model with compositional predictor at between and within-person levels
-  m <- brmcoda(complr = cilr,
-                formula = Stress ~ bilr1 + bilr2 + bilr3 + bilr4 +
-                                   wilr1 + wilr2 + wilr3 + wilr4 + (1 | ID),
+  m <- brmcoda(complr = x,
+                formula = Stress ~ bz1_1 + bz2_1 + bz3_1 + bz4_1 +
+                                   wz1_1 + wz2_1 + wz3_1 + wz4_1 + (1 | ID),
                 chain = 1, iter = 500,
                 backend = "cmdstanr")
   

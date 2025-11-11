@@ -1,30 +1,41 @@
 #' Estimate pivot balance coordinates
+#' 
+#' This function estimates pivot balance coordinates for each compositional part by
+#' either \code{"rotate"} the sequential binary partition using the same \code{brmcoda} object
+#' or \code{"refit"} the \code{brmcoda} object.
+#' 
 #' @param object An object of class \code{brmcoda}.
 #' @param method A character string.
 #' Should the pivot balance coordinates be estimated by \code{"rotate"} the sequential binary partition 
 #' using the same \code{brmcoda} object or \code{"refit"} the \code{brmcoda} object?
 #' Default is \code{"rotate"}.
+#' @param parts A optional character string specifying names of compositional parts that should be considered
+#' in the substitution analysis. This should correspond to a single set of names of compositional parts specified
+#' in the \code{complr} object. Default to the first composition in the \code{complr} object.
 #' @param summary Should summary statistics be returned instead of the raw values? Default is \code{TRUE}.
-#' @param ... currently ignored.
+#' @param ... Further arguments passed to \code{\link[brms:posterior_summary]{posterior_summary}}.
 #' 
-#' @return A list of \code{\link{brmcoda}} for each pivot balance coordinate.
+#' @return Estimated pivot balance coordinates representing the
+#' effect of increasing one compositional part relative to the remaining compositional parts.
+#' 
+#' @importFrom brms posterior_summary
 #' 
 #' @examples
 #' \donttest{
 #' if(requireNamespace("cmdstanr")){
-#'   cilr <- complr(data = mcompd, sbp = sbp,
+#'   x <- complr(data = mcompd, sbp = sbp,
 #'                  parts = c("TST", "WAKE", "MVPA", "LPA", "SB"), idvar = "ID",
 #'                  total = 1440)
 #'   
 #'   # inspects ILRs before passing to brmcoda
-#'   names(cilr$between_logratio)
-#'   names(cilr$within_logratio)
-#'   names(cilr$logratio)
+#'   names(x$between_logratio)
+#'   names(x$within_logratio)
+#'   names(x$logratio)
 #'   
 #'   # model with compositional predictor at between and within-person levels
-#'   m <- brmcoda(complr = cilr,
-#'                 formula = Stress ~ bilr1 + bilr2 + bilr3 + bilr4 +
-#'                                    wilr1 + wilr2 + wilr3 + wilr4 + (1 | ID),
+#'   m <- brmcoda(complr = x,
+#'                 formula = Stress ~ bz1_1 + bz2_1 + bz3_1 + bz4_1 +
+#'                                    wz1_1 + wz2_1 + wz3_1 + wz4_1 + (1 | ID),
 #'                 chain = 1, iter = 500,
 #'                 backend = "cmdstanr")
 #'   
@@ -32,21 +43,19 @@
 #'   summary(m_pivot_coord)
 #'   }}
 #' @export
-pivot_coord <- function (object, summary = TRUE, 
+pivot_coord <- function (object,
+                         summary = TRUE,
                          method = c("rotate", "refit"),
+                         parts = 1,
                          ...) {
-  
   if (all(c("rotate", "refit") %in% method)) {
     method <- "rotate"
   }
   if (method == "rotate") {
-    out <- pivot_coord_rotate(object = object,
-                              summary = summary,
-                              ...)
+    out <- pivot_coord_rotate(object = object, summary = summary, parts = parts, ...)
   }
   if (method == "refit") {
-    out <- pivot_coord_refit(object = object,
-                             ...)
+    out <- pivot_coord_refit(object = object, parts = parts, ...)
   }
   structure(out, class = "pivot_coord")
   out
@@ -54,24 +63,26 @@ pivot_coord <- function (object, summary = TRUE,
 
 #' Estimate pivot balance coordinates by rotating sequential binary partition.
 #' 
-#' @param object An object of class \code{brmcoda}.
-#' @param summary Should summary statistics be returned instead of the raw values? Default is \code{TRUE}.
-#' @param ... currently ignored.
+#' This function is an alias of \code{\link{pivot_coord}} to estimates the
+#' pivot balance coordinates by \code{"rotate"} the sequential binary partition on the
+#' same \code{brmcoda} object.
 #' 
-#' @return A list of \code{\link{brmcoda}} for each pivot balance coordinate.
+#' @seealso \code{\link{pivot_coord}}
 #' 
-#' @importFrom posterior summarise_draws as_draws_array
+#' @inheritParams pivot_coord
+#' 
+#' @inherit pivot_coord return
 #' 
 #' @examples
 #' \donttest{
 #' if(requireNamespace("cmdstanr")){
-#'   cilr <- complr(data = mcompd, sbp = sbp,
+#'   x <- complr(data = mcompd, sbp = sbp,
 #'                  parts = c("TST", "WAKE", "MVPA", "LPA", "SB"), idvar = "ID",
 #'                  total = 1440)
 #'   
-#'   m <- brmcoda(complr = cilr,
-#'                 formula = Stress ~ bilr1 + bilr2 + bilr3 + bilr4 +
-#'                                    wilr1 + wilr2 + wilr3 + wilr4 + (1 | ID),
+#'   m <- brmcoda(complr = x,
+#'                 formula = Stress ~ bz1_1 + bz2_1 + bz3_1 + bz4_1 +
+#'                                    wz1_1 + wz2_1 + wz3_1 + wz4_1 + (1 | ID),
 #'                 chain = 1, iter = 500,
 #'                 backend = "cmdstanr")
 #'   
@@ -79,188 +90,196 @@ pivot_coord <- function (object, summary = TRUE,
 #'   summary(m_pivot_coord_rotate)
 #'   
 #'   m_pivot_coord_raw <-  pivot_coord_rotate(m, summary = FALSE)
-#'   posterior::summarise_draws(posterior::as_draws_array(m_pivot_coord_raw$output))
+#'   lapply(m_pivot_coord_raw$output, brms::posterior_summary)
+#'   
 #'   }}
 #' @export
-pivot_coord_rotate <- function (object, summary = TRUE, ...) {
+pivot_coord_rotate <- function (object,
+                                summary = TRUE,
+                                parts = 1,
+                                ...) {
+  # get parts
+  parts <- .get_parts(object$complr, parts)
+  
+  ## get the index of which index elements of object[["complr"]][["output"]] does the parts correspond to
+  idx <- as.integer(which(vapply(lapply(object[["complr"]][["output"]], function(x)
+    x$parts), function(p)
+      identical(sort(parts), sort(p)), logical(1))))[1]
+  
+  b_sbp0 <- fixef(object, summary = FALSE,  ...)
+  
+  # grab the correct logratio names
+  z_vars  <- get_variables(object[["complr"]])[[paste0("composition_", idx)]][["Z"]]
+  bz_vars <- get_variables(object[["complr"]])[[paste0("composition_", idx)]][["bZ"]]
+  wz_vars <- get_variables(object[["complr"]])[[paste0("composition_", idx)]][["wZ"]]
+  # x_vars  <- get_variables(object[["complr"]])[[paste0("composition_", idx)]][["X"]]
+  # bx_vars <- get_variables(object[["complr"]])[[paste0("composition_", idx)]][["bX"]]
+  # wx_vars <- get_variables(object[["complr"]])[[paste0("composition_", idx)]][["wX"]]
+  
+  b_z_sbp0  <- b_sbp0[, colnames(b_sbp0) %in% z_vars]
+  b_bz_sbp0 <- b_sbp0[, colnames(b_sbp0) %in% bz_vars]
+  b_wz_sbp0 <- b_sbp0[, colnames(b_sbp0) %in% wz_vars]
   
   out <- vector("list")
-  
-  b_sbp_0 <- fixef(object,
-                   # newdata = model.frame(object),
-                   summary = FALSE,
-                   ...
-  )
-  
-  # what type of model is being estimated
-  model_fixef <- rownames(fixef(object))
-  # model_ranef <- if(dim(object$model$ranef)[1] > 0) (names(ranef(object))) else (NULL)
-  
-  ilr_vars  <- grep("ilr", model_fixef, value = T)
-  bilr_vars <- grep(".*bilr", model_fixef, value = T)
-  wilr_vars <- grep(".*wilr", model_fixef, value = T)
-  
-  ilr_sbp_0  <- object$complr$logratio
-  bilr_sbp_0 <- object$complr$between_logratio
-  wilr_sbp_0 <- object$complr$within_logratio
-  
-  b_ilr_sbp_0  <- b_sbp_0[, colnames(b_sbp_0) %in% ilr_vars]
-  b_bilr_sbp_0 <- b_sbp_0[, colnames(b_sbp_0) %in% bilr_vars]
-  b_wilr_sbp_0 <- b_sbp_0[, colnames(b_sbp_0) %in% wilr_vars]
-  
-  b_sbp_summary_d <- vector("list")
-  for (d in object$complr$parts) {
-    parts_d <- append(d, grep(d, object$complr$parts, value = T, invert = T))
-    sbp_d   <- build.sbp(parts_d)
-    sbp_d   <- sbp_d[, object$complr$parts]
+  for (d in parts) {
     
-    clr_d   <- complr(data  = object$complr$data, 
-                      sbp   = sbp_d,
-                      parts = object$complr$parts,
-                      idvar = object$complr$idvar,
-                      total = object$complr$total)
+    # new complr object with rotated sbp
+    partsd <- append(d, grep(d, parts, value = T, invert = T))
+    sbpd   <- build.sbp(partsd)
     
-    R <- crossprod(object$complr$psi, clr_d$psi)
-
-    pars <- c("intercept", "between_logratio", "within_logratio", "logratio")
-    b_sbp_target_i <- vector("list", length = length(pars))
-    names(b_sbp_target_i) <- pars
+    # rotate sbp but keep parts the same so first part is the part of interest when rotated
+    sbp_rotate <- lapply(object[["complr"]][["output"]], function(x) x[["sbp"]])
+    sbp_rotate[[idx]] <- sbpd[, parts]
     
-    for (i in seq_along(b_sbp_target_i)) {
-      if (i == 1) {
-        b_sbp_target_i[[i]] <- b_sbp_0[, "Intercept"]
-      } else {
-        
-        ## bilr
-        if (i == 2) {
-          if (length(grep("bilr", model_fixef, value = T)) > 0) {
-            b_sbp_target_i[[i]] <- (b_bilr_sbp_0) %*% R
-          } 
-        }
-        
-        ## wilr
-        if (i == 3) {
-          if (length(grep("wilr", model_fixef, value = T)) > 0 ) {
-            b_sbp_target_i[[i]] <- (b_wilr_sbp_0) %*% R
-          }
-        }
-        
-        ## ilr
-        if (i == 4) {
-          if ((length(grep("ilr", model_fixef, value = T)) > 0) 
-              && (length(grep("[b|w]ilr", model_fixef, value = T)) == 0)) {
-            b_sbp_target_i[[i]] <- (b_ilr_sbp_0) %*% R
-          }
-        }
-      }
-    }
-
+    parts_rotate <- lapply(object[["complr"]][["output"]], function(x) x[["parts"]])
+    parts_rotate[[idx]] <- parts
+    
+    total_rotate <- lapply(object[["complr"]][["output"]], function(x) x[["total"]])
+    total_rotate[[idx]] <- object[["complr"]][["output"]][[idx]][["total"]]
+    
+    clrd   <- complr(
+      data  = object[["complr"]][["datain"]],
+      sbp   = sbp_rotate,
+      parts = parts_rotate,
+      total = total_rotate,
+      idvar = if(!is.null(object[["complr"]][["idvar"]])) object[["complr"]][["idvar"]] else NULL
+    )
+    
+    # rotation matrix
+    R <- crossprod(object[["complr"]][["output"]][[idx]]$psi, clrd$output[[idx]]$psi)
+    
+    # multiply posterior samples with rotation matrix
+    b_sbpd <- list(
+      b_a_sbpd  = b_sbp0[, "Intercept"],
+      b_bz_sbpd = if (!is.null(colnames(b_bz_sbp0)) && all(colnames(b_bz_sbp0) %in% colnames(b_sbp0))) as.matrix(b_bz_sbp0) %*% R else NULL,
+      b_wz_sbpd = if (!is.null(colnames(b_wz_sbp0)) && all(colnames(b_wz_sbp0) %in% colnames(b_sbp0))) as.matrix(b_wz_sbp0) %*% R else NULL,
+      b_z_sbpd  = if (!is.null(colnames(b_z_sbp0))  && all(colnames(b_z_sbp0)  %in% colnames(b_sbp0))) as.matrix(b_z_sbp0) %*% R else NULL
+    )
+    
     # take only non-empty elements (between vs within vs aggregate results)
-    b_sbp_target_i <- Filter(Negate(is.null), b_sbp_target_i)
+    b_sbpd <- Filter(Negate(is.null), b_sbpd)
     
-    if ("logratio" %in% names(b_sbp_target_i)) {
-      level <- "aggregate"
-      varnames <- c(bilr_vars, wilr_vars)
-    } else {
-      level <- c("between", "within")
-      varnames <- c(ilr_vars)
-    }
+    # name new variables the same as in the original model
+    b_sbpd <- lapply(names(b_sbpd), function(n) {
+      d <- as.matrix(b_sbpd[[n]])
+      if (n == "b_a_sbpd")  colnames(d) <- "Intercept"
+      if (n == "b_bz_sbpd") colnames(d) <- colnames(b_bz_sbp0)
+      if (n == "b_wz_sbpd") colnames(d) <- colnames(b_wz_sbp0)
+      if (n == "b_z_sbpd")  colnames(d) <- colnames(b_z_sbp0)
+      d
+    })
+    b_sbpd <- do.call(cbind, b_sbpd)
     
     # summarise posteriors
-    if (isTRUE(summary)) {
-      b_sbp_target_summary <- lapply(b_sbp_target_i, posterior_summary)
-      b_sbp_target_summary <- do.call(rbind, b_sbp_target_summary)
-      
-      rownames(b_sbp_target_summary) <- c("Intercept", varnames)
-      b_sbp_target_summary <- b_sbp_target_summary[rownames(b_sbp_target_summary) %in% c("bilr1", "wilr1", "ilr1"), ]
-      
-      # assemble output table
-      b_sbp_target_summary <- cbind.data.frame(`Pivot coordinate` = paste0(d, "_vs_remaining"),
-                                               Level = level,
-                                               b_sbp_target_summary)
+    if (summary) {
+      b_sbpd_summary <- apply(b_sbpd, 2, posterior_summary, ...)
+      b_sbpd_summary <- b_sbpd_summary[, grep("z1", colnames(b_sbpd), value = T), drop = FALSE]
+      dimnames(b_sbpd_summary) <- list(c("Estimate", "Est.Error", "CI_low", "CI_high"), grep("z1", colnames(b_sbpd), value = TRUE))
     } else {
-      b_sbp_target_summary <- matrix(unlist(b_sbp_target_i), ncol = ndraws(object), byrow = TRUE)
-      rownames(b_sbp_target_summary) <- c("Intercept", varnames)
-      b_sbp_target_summary <- b_sbp_target_summary[rownames(b_sbp_target_summary) %in% c("bilr1", "wilr1", "ilr1"), ]
+      b_sbpd_summary <- b_sbpd[, grep("z1", colnames(b_sbpd), value = T), drop = FALSE]
     }
-    b_sbp_summary_d[[d]] <- b_sbp_target_summary
+    out[[d]] <- b_sbpd_summary
   }
-  
-  if (isTRUE(summary)) {
-    out <- do.call(rbind, b_sbp_summary_d)
-    rownames(out) <- NULL
-  } else {
-    out <- array(unlist(b_sbp_summary_d), 
-                 dim = c(length(level),
-                         ndraws(object),
-                         length(object$complr$parts))
-    )
-    # out <- brms::do_call(abind::abind, c(out, along = 3))
-    out <- aperm(out, c(2, 1, 3)) 
-    
-    dimnames(out)[[1]] <- 1:ndraws(object)
-    dimnames(out)[[2]] <- level
-    dimnames(out)[[3]] <- object$complr$parts
-  }
-  out <- structure(list(output = out, method = "rotate"), class = "pivot_coord")
-  out
+  names(out) <- parts
+  structure(list(output = out, method = "rotate", summary = summary), class = "pivot_coord")
 }
 
 #' Estimate pivot balance coordinates by refitting model.
 #' 
-#' @param object An object of class \code{brmcoda}.
-#' @param ... Further arguments passed to \code{\link[brms:brm]{brm}}.
+#' This function is an alias of \code{\link{pivot_coord}} to estimates the
+#' pivot balance coordinates by \code{"refit"} the \code{brmcoda} object.
 #' 
-#' @return A list of \code{\link{brmcoda}} for each pivot balance coordinate.
+#' @seealso \code{\link{pivot_coord}}
+#' 
+#' @inheritParams pivot_coord
+#' 
+#' @inherit pivot_coord return
 #' 
 #' @examples
 #' \donttest{
-#' if(requireNamespace("cmdstanr")){
-#'   cilr <- complr(data = mcompd, sbp = sbp,
+#' if(requireNamespace("cmdstanr", "brms")){
+#'   x <- complr(data = mcompd, sbp = sbp,
 #'                  parts = c("TST", "WAKE", "MVPA", "LPA", "SB"), idvar = "ID",
 #'                  total = 1440)
 #'   
-#'   m <- brmcoda(complr = cilr,
-#'                 formula = Stress ~ bilr1 + bilr2 + bilr3 + bilr4 +
-#'                                    wilr1 + wilr2 + wilr3 + wilr4 + (1 | ID),
+#'   m <- brmcoda(complr = x,
+#'                 formula = Stress ~ bz1_1 + bz2_1 + bz3_1 + bz4_1 +
+#'                                    wz1_1 + wz2_1 + wz3_1 + wz4_1 + (1 | ID),
 #'                 chain = 1, iter = 500,
 #'                 backend = "cmdstanr")
 #'   
 #'   m_pivot_coord_refit <- pivot_coord_refit(m)
 #'   summary(m_pivot_coord_refit)
+#'   
+#'   m_pivot_coord_raw <-  pivot_coord_refit(m, summary = FALSE)
+#'   lapply(m_pivot_coord_raw$output, brms::posterior_summary)
+#'   
 #'   }}
 #' @export
-pivot_coord_refit <- function (object, ...) {
+pivot_coord_refit <- function (object,
+                               summary = TRUE,
+                               parts = 1,
+                               ...) {
   
-  out_d <- vector("list")
+  # get parts
+  parts <- .get_parts(object[["complr"]], parts)
   
-  # loop through parts
-  for (d in object$complr$parts) {
-    parts_d <- append(d, grep(d, object$complr$parts, value = T, invert = T))
-    sbp_d   <- build.sbp(parts_d)
-    sbp_d   <- sbp_d[, object$complr$parts]
+  ## get the index of which index elements of object[["complr"]][["output"]] does the parts correspond to
+  idx <- as.integer(which(vapply(lapply(object[["complr"]][["output"]], function(x)
+    x$parts), function(p)
+      identical(sort(parts), sort(p)), logical(1))))[1]
+  
+  b_sbp0 <- fixef(object,
+                  summary = FALSE,
+                  ...
+  )
+  # grab the correct logratio names
+  z_vars  <- get_variables(object[["complr"]])[[paste0("composition_", idx)]][["Z"]]
+  bz_vars <- get_variables(object[["complr"]])[[paste0("composition_", idx)]][["bZ"]]
+  wz_vars <- get_variables(object[["complr"]])[[paste0("composition_", idx)]][["wZ"]]
+  # x_vars  <- get_variables(object[["complr"]])[[paste0("composition_", idx)]][["X"]]
+  # bx_vars <- get_variables(object[["complr"]])[[paste0("composition_", idx)]][["bX"]]
+  # wx_vars <- get_variables(object[["complr"]])[[paste0("composition_", idx)]][["wX"]]
+  
+  b_z_sbp0  <- b_sbp0[, colnames(b_sbp0) %in% z_vars]
+  b_bz_sbp0 <- b_sbp0[, colnames(b_sbp0) %in% bz_vars]
+  b_wz_sbp0 <- b_sbp0[, colnames(b_sbp0) %in% wz_vars]
+  
+  out <- vector("list")
+  for (d in parts) {
+    partsd <- append(d, grep(d, parts, value = T, invert = T))
     
-    clr_d <- complr(data  = object$complr$data, 
-                    sbp   = sbp_d,
-                    parts = object$complr$parts,
-                    idvar = object$complr$idvar,
-                    total = object$complr$total)
+    # swap first element in composition to make new sbp
+    sbp_refit <- lapply(object[["complr"]][["output"]], function(x) x[["sbp"]])
+    sbp_refit[[idx]] <- build.sbp(partsd)
     
-    dat_d <-  cbind(clr_d$data,
-                    clr_d$between_logratio,
-                    clr_d$within_logratio,
-                    clr_d$logratio)
+    parts_refit <- lapply(object[["complr"]][["output"]], function(x) x[["parts"]])
+    parts_refit[[idx]] <- partsd
     
-    fit_d <- update(object$model,
-                    newdata = dat_d,
-                    ...)
+    total_refit <- lapply(object[["complr"]][["output"]], function(x) x[["total"]])
+    total_refit[[idx]] <- object[["complr"]][["output"]][[idx]][["total"]]
     
-    brmcoda_d <- structure(list(complr = clr_d,
-                                model  = fit_d),
-                           class = "brmcoda")
+    clrd   <- complr(
+      data  = object[["complr"]][["datain"]],
+      sbp   = sbp_refit,
+      parts = parts_refit,
+      total = total_refit,
+      idvar = if(!is.null(object[["complr"]][["idvar"]])) object[["complr"]][["idvar"]] else NULL
+    )
+    brmcodad <- update(object$model, newdata = clrd$dataout, ...)
+    b_sbpd   <- fixef(brmcodad, summary = FALSE,  ...)
     
-    out_d[[d]] <-   brmcoda_d
+    # summarise posteriors
+    if (summary) {
+      b_sbpd_summary <- apply(b_sbpd, 2, posterior_summary, ...)
+      b_sbpd_summary <- b_sbpd_summary[, grep("z1", colnames(b_sbpd), value = T), drop = FALSE]
+      dimnames(b_sbpd_summary) <- list(c("Estimate", "Est.Error", "CI_low", "CI_high"), grep("z1", colnames(b_sbpd), value = TRUE))
+    } else {
+      b_sbpd_summary <- b_sbpd[, grep("z1", colnames(b_sbpd), value = T), drop = FALSE]
+    }
+    out[[d]] <- b_sbpd_summary
   }
-  out <- structure(list(output = out_d, method = "refit"), class = "pivot_coord")
-  out
+  names(out) <- parts
+  structure(list(output = out, method = "refit", summary = summary), class = "pivot_coord")
 }
+

@@ -9,12 +9,14 @@ substitution(
   delta,
   ref = c("grandmean", "clustermean"),
   level = c("between", "within", "aggregate"),
-  basesub,
-  aorg = TRUE,
   summary = TRUE,
+  at = NULL,
+  parts = 1,
+  base,
+  type,
   weight = c("equal", "proportional"),
   scale = c("response", "linear"),
-  comparison = NULL,
+  aorg = NULL,
   cores = NULL,
   ...
 )
@@ -35,41 +37,43 @@ Single level models are default to \code{"grandmean"}.}
 Should the estimate of multilevel models focus on the \code{"between"} and/or \code{"within"} or \code{"aggregate"} variance?
 Single-level models are default to \code{"aggregate"}.}
 
-\item{basesub}{A base substitution.
-Can be a \code{data.frame} or \code{data.table} of the base possible substitution of compositional parts,
-which can be computed using function \code{\link{build.basesub}}.
-If \code{"one-to-all"}, all possible one-to-remaining reallocations are estimated.
-If \code{NULL}, all possible one-to-one reallocations are estimated.}
-
-\item{aorg}{A logical value to obtain (a)verage prediction (o)ver the (r)eference (g)rid.
-Should the estimate at each level of the reference grid (\code{FALSE})
-or their average (\code{TRUE}) be returned?
-Default is \code{TRUE}.
-Only applicable for model with covariates in addition to
-the isometric log-ratio coordinates (i.e., adjusted model).}
-
 \item{summary}{A logical value to obtain summary statistics instead of the raw values. Default is \code{TRUE}.
 Currently only support outputing raw values for model using grandmean as reference composition.}
 
-\item{weight}{A character value specifying the weight to use in calculation of the reference composition.
+\item{at}{An optional named list of levels for the corresponding variables in the reference grid.}
+
+\item{parts}{A optional character string specifying names of compositional parts that should be considered
+in the substitution analysis. This should correspond to a single set of names of compositional parts specified
+in the \code{complr} object. Default to the first composition in the \code{complr} object.}
+
+\item{base}{An optional base substitution.
+Can be a \code{data.frame} or \code{data.table} of the base possible substitution of compositional parts,
+which can be computed using function \code{\link{build.base}}.}
+
+\item{type}{A character string to indicate the type of substitution.
+If \code{"one-to-all"}, all possible one-to-remaining reallocations are estimated.
+If \code{"one-to-one"}, all possible one-to-one reallocations are estimated.
 If \code{"equal"}, give equal weight to units (e.g., individuals).
 If \code{"proportional"}, weights in proportion to the frequencies of units being averaged
 (e.g., observations across individuals).
 Default to \code{"equal"} for \code{ref = "grandmean"} and \code{"proportional"} for \code{ref = "clustermean"}.}
+
+\item{weight}{A character value specifying the weight to use in calculation of the reference composition.}
 
 \item{scale}{Either \code{"response"} or \code{"linear"}.
 If \code{"response"}, results are returned on the scale of the response variable.
 If \code{"linear"}, results are returned on the scale of the linear predictor term,
 that is without applying the inverse link function or other transformations.}
 
-\item{comparison}{internally used only.}
+\item{aorg}{Internal use. A logical value indicating whether the results should be average across reference grid.}
 
 \item{cores}{Number of cores to use when executing the chains in parallel,
 we recommend setting the \code{mc.cores} option
 to be as many processors as the hardware and RAM allow (up to the number of compositional parts).
-For non-Windows OS in non-interactive R sessions, forking is used instead of PSOCK clusters.}
+For non-Windows OS in non-interactive R sessions, forking is used instead of PSOCK clusters.
+Default to \code{"one-to-one"}.}
 
-\item{...}{currently ignored.}
+\item{...}{Further arguments passed to \code{\link[brms:posterior_summary]{posterior_summary}}.}
 }
 \value{
 A list containing the results of multilevel compositional substitution model.
@@ -92,30 +96,31 @@ present in the \code{\link{brmcoda}} object.
 \examples{
 \donttest{
 if(requireNamespace("cmdstanr")){
-  cilr <- complr(data = mcompd, sbp = sbp,
+  x <- complr(data = mcompd, sbp = sbp,
                  parts = c("TST", "WAKE", "MVPA", "LPA", "SB"),
                  idvar = "ID", total = 1440)
 
   # model with compositional predictor at between and within-person levels
-  fit1 <- brmcoda(complr = cilr,
-                  formula = Stress ~ bilr1 + bilr2 + bilr3 + bilr4 +
-                                     wilr1 + wilr2 + wilr3 + wilr4 + (1 | ID),
+  m1 <- brmcoda(complr = x,
+                  formula = Stress ~ bz1_1 + bz2_1 + bz3_1 + bz4_1 +
+                                     wz1_1 + wz2_1 + wz3_1 + wz4_1 +
+                                     Female + (1 | ID),
                   chain = 1, iter = 500, backend = "cmdstanr")
-                  
+
   # one to one reallocation at between and within-person levels
-  sub1 <- substitution(object = fit1, delta = 5, level = c("between"))
+  sub1 <- substitution(object = m1, delta = 5, level = c("between"))
   summary(sub1)
-  
+
   # one to all reallocation at between and within-person levels
-  sub2 <- substitution(object = fit1, delta = 5, level = c("between", "within"), 
-                       basesub = "one-to-all")
-  summary(sub2) 
-  
-  # model with compositional predictor at aggregate level of variance
-  fit2 <- brmcoda(complr = cilr,
-                  formula = Stress ~ ilr1 + ilr2 + ilr3 + ilr4 + (1 | ID),
+  sub2 <- substitution(object = m1, delta = 5, level = c("between", "within"),
+                       type = "one-to-all")
+  summary(sub2)
+
+  # model with compositional predictor at aggregate level
+  m2 <- brmcoda(complr = x,
+                  formula = Stress ~ z1_1 + z2_1 + z3_1 + z4_1 + (1 | ID),
                   chain = 1, iter = 500, backend = "cmdstanr")
-  sub3 <- substitution(object = fit2, delta = 5, level = c("aggregate"))
+  sub3 <- substitution(object = m2, delta = 5, level = c("aggregate"))
 
 }}
 }

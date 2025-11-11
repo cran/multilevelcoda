@@ -11,14 +11,18 @@ complr(data, parts, sbp = NULL, total = 1, idvar = NULL, transform = "ilr")
 containing data of all variables used in the analysis.
 It must include a composition and a ID variable. Required.}
 
-\item{parts}{A character vector specifying the names of compositional variables to be used.}
+\item{parts}{A character vector specifying the names of compositional variables to be used.
+For multiple compositions, a list of character vectors.}
 
-\item{sbp}{A signary matrix indicating sequential binary partition.}
+\item{sbp}{A signary matrix indicating sequential binary partition when \code{transform = "ilr"}.
+If not supplied, a default sequential binary partition (sbp) will be built using function \code{\link{build.sbp}}.
+For multiple compositions, a list of sbps can be supplied.}
 
 \item{total}{A numeric value of the total amount to which the compositions should be closed.
+For multiple compositions, a list of numeric values.
 Default is \code{1}.}
 
-\item{idvar}{Only for multilevel data, a character string specifying the name of the variable containing IDs.}
+\item{idvar}{Only for multilevel data, a character string specifying the name of the variable containing participants IDs.}
 
 \item{transform}{A character value naming a log ratio transformation to be applied on compositional data.
 Can be either \code{"ilr"} (isometric logratio), \code{"alr"} (additive logratio), or \code{"clr"} (centered logratio).
@@ -26,16 +30,16 @@ Default is \code{"ilr"}.}
 }
 \value{
 A \code{\link{complr}} object with at least the following elements.
-\item{\code{comp}}{ A vector of class \code{acomp} representing one closed composition
+\item{\code{X}}{ A vector of class \code{acomp} representing one closed composition
 or a matrix of class \code{acomp} representing multiple closed  compositions each in one row.}
-\item{\code{between_comp}}{ A vector of class \code{acomp} representing one closed between-person composition
+\item{\code{bX}}{ A vector of class \code{acomp} representing one closed between-person composition
 or a matrix of class \code{acomp} representing multiple closed between-person compositions each in one row.}
-\item{\code{within_comp}}{ A vector of class \code{acomp} representing one closed within-person composition
+\item{\code{wX}}{ A vector of class \code{acomp} representing one closed within-person composition
 or a matrix of class \code{acomp} representing multiple closed within-person compositions each in one row.}
-\item{\code{logratio}}{ Log ratio transform of composition.}
-\item{\code{between_logratio}}{ Log ratio transform of between-person composition.}
-\item{\code{within_logratio}}{ Log ratio transform of within-person composition.}
-\item{\code{data}}{ The user's dataset or imputed dataset if the input data contains zeros.}
+\item{\code{Z}}{ Log ratio transform of composition.}
+\item{\code{bZ}}{ Log ratio transform of between-person composition.}
+\item{\code{wZ}}{ Log ratio transform of within-person composition.}
+\item{\code{data}}{ The user's dataset or imputed dataset if the iiut data contains zeros.}
 \item{\code{transform}}{ Type of transform applied on compositional data.}
 \item{\code{parts}}{ Names of compositional variables.}
 \item{\code{idvar}}{ Name of the variable containing IDs.}
@@ -62,24 +66,25 @@ isometrically to a D-dimensional Euclidian vector subspace.
 resulting in singular covariance matrices.
 }
 \examples{
-cilr <- complr(data = mcompd,
+x1 <- complr(data = mcompd,
                 parts = c("TST", "WAKE", "MVPA", "LPA", "SB"),
                 idvar = "ID", total = 1440)
-str(cilr)
+str(x1)
 
-calr <- complr(data = mcompd, sbp = sbp,
+x2 <- complr(data = mcompd,
+                parts = list(c("TST", "WAKE"), c("MVPA", "LPA", "SB")),
+                total = list(c(480), c(960)),
+                idvar = "ID",
+                transform = "ilr")
+str(x2)
+
+x3 <- complr(data = mcompd, sbp = sbp,
                 parts = c("TST", "WAKE", "MVPA", "LPA", "SB"),
                 idvar = "ID",
-                transform = "alr")
-str(calr)
+                 transform = "ilr")
+str(x3)
 
-cclr <- complr(data = mcompd, sbp = sbp,
-                parts = c("TST", "WAKE", "MVPA", "LPA", "SB"),
-                idvar = "ID",
-                 transform = "clr")
-str(cclr)
-
-cilr_wide <- complr(data = mcompd[!duplicated(ID)], sbp = sbp,
+x_wide <- complr(data = mcompd[!duplicated(ID)], sbp = sbp,
                 parts = c("TST", "WAKE", "MVPA", "LPA", "SB"))
-str(cilr_wide)
+str(x_wide)
 }

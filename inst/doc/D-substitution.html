@@ -1621,14 +1621,14 @@ ILR coordinate predictors using <code>complr()</code> function.</p>
 <span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a>                <span class="at">parts =</span> <span class="fu">c</span>(<span class="st">&quot;TST&quot;</span>, <span class="st">&quot;WAKE&quot;</span>, <span class="st">&quot;MVPA&quot;</span>, <span class="st">&quot;LPA&quot;</span>, <span class="st">&quot;SB&quot;</span>), <span class="at">idvar =</span> <span class="st">&quot;ID&quot;</span>, <span class="at">total =</span> <span class="dv">1440</span>)</span>
 <span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a></span>
 <span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a>m <span class="ot">&lt;-</span> <span class="fu">brmcoda</span>(<span class="at">complr =</span> cilr,</span>
-<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a>             <span class="at">formula =</span> Stress <span class="sc">~</span> bilr1 <span class="sc">+</span> bilr2 <span class="sc">+</span> bilr3 <span class="sc">+</span> bilr4 <span class="sc">+</span></span>
-<span id="cb2-6"><a href="#cb2-6" tabindex="-1"></a>                                wilr1 <span class="sc">+</span> wilr2 <span class="sc">+</span> wilr3 <span class="sc">+</span> wilr4 <span class="sc">+</span> Female <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> ID),</span>
+<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a>             <span class="at">formula =</span> Stress <span class="sc">~</span> bz1_1 <span class="sc">+</span> bz2_1 <span class="sc">+</span> bz3_1 <span class="sc">+</span> bz4_1 <span class="sc">+</span></span>
+<span id="cb2-6"><a href="#cb2-6" tabindex="-1"></a>                                wz1_1 <span class="sc">+</span> wz2_1 <span class="sc">+</span> wz3_1 <span class="sc">+</span> wz4_1 <span class="sc">+</span> Female <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> ID),</span>
 <span id="cb2-7"><a href="#cb2-7" tabindex="-1"></a>             <span class="at">cores =</span> <span class="dv">8</span>, <span class="at">seed =</span> <span class="dv">123</span>, <span class="at">backend =</span> <span class="st">&quot;cmdstanr&quot;</span>)</span></code></pre></div>
 <p>A <code>summary()</code> of the model results.</p>
 <div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="fu">summary</span>(m)</span>
 <span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a><span class="co">#&gt;  Family: gaussian </span></span>
 <span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a><span class="co">#&gt;   Links: mu = identity; sigma = identity </span></span>
-<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a><span class="co">#&gt; Formula: Stress ~ bilr1 + bilr2 + bilr3 + bilr4 + wilr1 + wilr2 + wilr3 + wilr4 + Female + (1 | ID) </span></span>
+<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a><span class="co">#&gt; Formula: Stress ~ bz1_1 + bz2_1 + bz3_1 + bz4_1 + wz1_1 + wz2_1 + wz3_1 + wz4_1 + Female + (1 | ID) </span></span>
 <span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a><span class="co">#&gt;    Data: tmp (Number of observations: 3540) </span></span>
 <span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a><span class="co">#&gt;   Draws: 4 chains, each with iter = 2000; warmup = 1000; thin = 1;</span></span>
 <span id="cb3-7"><a href="#cb3-7" tabindex="-1"></a><span class="co">#&gt;          total post-warmup draws = 4000</span></span>
@@ -1641,14 +1641,14 @@ ILR coordinate predictors using <code>complr()</code> function.</p>
 <span id="cb3-14"><a href="#cb3-14" tabindex="-1"></a><span class="co">#&gt; Regression Coefficients:</span></span>
 <span id="cb3-15"><a href="#cb3-15" tabindex="-1"></a><span class="co">#&gt;           Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS</span></span>
 <span id="cb3-16"><a href="#cb3-16" tabindex="-1"></a><span class="co">#&gt; Intercept     2.65      0.48     1.69     3.56 1.00     1494     2202</span></span>
-<span id="cb3-17"><a href="#cb3-17" tabindex="-1"></a><span class="co">#&gt; bilr1         0.11      0.32    -0.53     0.74 1.00      967     1699</span></span>
-<span id="cb3-18"><a href="#cb3-18" tabindex="-1"></a><span class="co">#&gt; bilr2         0.50      0.34    -0.16     1.15 1.00     1081     2071</span></span>
-<span id="cb3-19"><a href="#cb3-19" tabindex="-1"></a><span class="co">#&gt; bilr3         0.11      0.21    -0.31     0.53 1.00     1059     2057</span></span>
-<span id="cb3-20"><a href="#cb3-20" tabindex="-1"></a><span class="co">#&gt; bilr4         0.04      0.28    -0.51     0.60 1.00     1266     2174</span></span>
-<span id="cb3-21"><a href="#cb3-21" tabindex="-1"></a><span class="co">#&gt; wilr1        -0.34      0.12    -0.58    -0.09 1.00     2797     2882</span></span>
-<span id="cb3-22"><a href="#cb3-22" tabindex="-1"></a><span class="co">#&gt; wilr2         0.05      0.13    -0.21     0.32 1.00     3134     2299</span></span>
-<span id="cb3-23"><a href="#cb3-23" tabindex="-1"></a><span class="co">#&gt; wilr3        -0.10      0.08    -0.26     0.06 1.00     2712     2653</span></span>
-<span id="cb3-24"><a href="#cb3-24" tabindex="-1"></a><span class="co">#&gt; wilr4         0.24      0.10     0.04     0.44 1.00     2963     2874</span></span>
+<span id="cb3-17"><a href="#cb3-17" tabindex="-1"></a><span class="co">#&gt; bz1_1         0.11      0.32    -0.53     0.74 1.00      967     1699</span></span>
+<span id="cb3-18"><a href="#cb3-18" tabindex="-1"></a><span class="co">#&gt; bz2_1         0.50      0.34    -0.16     1.15 1.00     1081     2071</span></span>
+<span id="cb3-19"><a href="#cb3-19" tabindex="-1"></a><span class="co">#&gt; bz3_1         0.11      0.21    -0.31     0.53 1.00     1059     2057</span></span>
+<span id="cb3-20"><a href="#cb3-20" tabindex="-1"></a><span class="co">#&gt; bz4_1         0.04      0.28    -0.51     0.60 1.00     1266     2174</span></span>
+<span id="cb3-21"><a href="#cb3-21" tabindex="-1"></a><span class="co">#&gt; wz1_1        -0.34      0.12    -0.58    -0.09 1.00     2797     2882</span></span>
+<span id="cb3-22"><a href="#cb3-22" tabindex="-1"></a><span class="co">#&gt; wz2_1         0.05      0.13    -0.21     0.32 1.00     3134     2299</span></span>
+<span id="cb3-23"><a href="#cb3-23" tabindex="-1"></a><span class="co">#&gt; wz3_1        -0.10      0.08    -0.26     0.06 1.00     2712     2653</span></span>
+<span id="cb3-24"><a href="#cb3-24" tabindex="-1"></a><span class="co">#&gt; wz4_1         0.24      0.10     0.04     0.44 1.00     2963     2874</span></span>
 <span id="cb3-25"><a href="#cb3-25" tabindex="-1"></a><span class="co">#&gt; Female       -0.41      0.17    -0.77    -0.07 1.00     1364     1823</span></span>
 <span id="cb3-26"><a href="#cb3-26" tabindex="-1"></a><span class="co">#&gt; </span></span>
 <span id="cb3-27"><a href="#cb3-27" tabindex="-1"></a><span class="co">#&gt; Further Distributional Parameters:</span></span>
@@ -1661,7 +1661,7 @@ ILR coordinate predictors using <code>complr()</code> function.</p>
 <p>We can see that the first and forth within-person ILR coordinates
 were both associated with stress. Interpretation for multilevel ILR
 coordinates can often be less intuitive. For example, the significant
-coefficient for wilr1 shows that the within-person change in sleep
+coefficient for wz1_1 shows that the within-person change in sleep
 behaviours (sleep duration and time awake in bed combined), relative to
 wake behaviours (moderate to vigorous physical activity, light physical
 activity, and sedentary behaviour) on a given day, is associated with

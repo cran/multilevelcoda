@@ -1619,22 +1619,22 @@ has multiple ILR coordinate outcomes,each of which is predicted by a set
 of predictors. Our <code>brms</code> model can be then fitted using the
 <code>brmcoda()</code> function.</p>
 <div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a>mv <span class="ot">&lt;-</span> <span class="fu">brmcoda</span>(<span class="at">complr =</span> cilr,</span>
-<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a>              <span class="at">formula =</span> <span class="fu">mvbind</span>(ilr1, ilr2, ilr3, ilr4) <span class="sc">~</span> Stress <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> ID),</span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a>              <span class="at">formula =</span> <span class="fu">mvbind</span>(z1_1, z2_1, z3_1, z4_1) <span class="sc">~</span> Stress <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> ID),</span>
 <span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a>              <span class="at">cores =</span> <span class="dv">8</span>, <span class="at">seed =</span> <span class="dv">123</span>, <span class="at">backend =</span> <span class="st">&quot;cmdstanr&quot;</span>)</span>
 <span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a><span class="co">#&gt; Warning: In the future, &#39;rescor&#39; will be set to FALSE by default for all models. It is thus</span></span>
 <span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a><span class="co">#&gt; recommended to explicitely set &#39;rescor&#39; via &#39;set_rescor&#39; instead of using the default.</span></span></code></pre></div>
 <p>Here is a <code>summary()</code> of the model. We can see that stress
-significantly predicted <code>ilr1</code> and <code>ilr2</code>.</p>
+significantly predicted <code>z1_1</code> and <code>z2_1</code>.</p>
 <div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="fu">summary</span>(mv)</span>
 <span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a><span class="co">#&gt;  Family: MV(gaussian, gaussian, gaussian, gaussian) </span></span>
 <span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a><span class="co">#&gt;   Links: mu = identity; sigma = identity</span></span>
 <span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a><span class="co">#&gt;          mu = identity; sigma = identity</span></span>
 <span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a><span class="co">#&gt;          mu = identity; sigma = identity</span></span>
 <span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a><span class="co">#&gt;          mu = identity; sigma = identity </span></span>
-<span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a><span class="co">#&gt; Formula: ilr1 ~ Stress + (1 | ID) </span></span>
-<span id="cb4-8"><a href="#cb4-8" tabindex="-1"></a><span class="co">#&gt;          ilr2 ~ Stress + (1 | ID) </span></span>
-<span id="cb4-9"><a href="#cb4-9" tabindex="-1"></a><span class="co">#&gt;          ilr3 ~ Stress + (1 | ID) </span></span>
-<span id="cb4-10"><a href="#cb4-10" tabindex="-1"></a><span class="co">#&gt;          ilr4 ~ Stress + (1 | ID) </span></span>
+<span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a><span class="co">#&gt; Formula: z1_1 ~ Stress + (1 | ID) </span></span>
+<span id="cb4-8"><a href="#cb4-8" tabindex="-1"></a><span class="co">#&gt;          z2_1 ~ Stress + (1 | ID) </span></span>
+<span id="cb4-9"><a href="#cb4-9" tabindex="-1"></a><span class="co">#&gt;          z3_1 ~ Stress + (1 | ID) </span></span>
+<span id="cb4-10"><a href="#cb4-10" tabindex="-1"></a><span class="co">#&gt;          z4_1 ~ Stress + (1 | ID) </span></span>
 <span id="cb4-11"><a href="#cb4-11" tabindex="-1"></a><span class="co">#&gt;    Data: tmp (Number of observations: 3540) </span></span>
 <span id="cb4-12"><a href="#cb4-12" tabindex="-1"></a><span class="co">#&gt;   Draws: 4 chains, each with iter = 2000; warmup = 1000; thin = 1;</span></span>
 <span id="cb4-13"><a href="#cb4-13" tabindex="-1"></a><span class="co">#&gt;          total post-warmup draws = 4000</span></span>
@@ -1642,37 +1642,37 @@ significantly predicted <code>ilr1</code> and <code>ilr2</code>.</p>
 <span id="cb4-15"><a href="#cb4-15" tabindex="-1"></a><span class="co">#&gt; Multilevel Hyperparameters:</span></span>
 <span id="cb4-16"><a href="#cb4-16" tabindex="-1"></a><span class="co">#&gt; ~ID (Number of levels: 266) </span></span>
 <span id="cb4-17"><a href="#cb4-17" tabindex="-1"></a><span class="co">#&gt;                    Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS</span></span>
-<span id="cb4-18"><a href="#cb4-18" tabindex="-1"></a><span class="co">#&gt; sd(ilr1_Intercept)     0.33      0.02     0.30     0.37 1.00     1228     2060</span></span>
-<span id="cb4-19"><a href="#cb4-19" tabindex="-1"></a><span class="co">#&gt; sd(ilr2_Intercept)     0.30      0.01     0.28     0.33 1.00     1134     1929</span></span>
-<span id="cb4-20"><a href="#cb4-20" tabindex="-1"></a><span class="co">#&gt; sd(ilr3_Intercept)     0.39      0.02     0.35     0.43 1.00     1731     2763</span></span>
-<span id="cb4-21"><a href="#cb4-21" tabindex="-1"></a><span class="co">#&gt; sd(ilr4_Intercept)     0.30      0.02     0.27     0.33 1.00     1710     2483</span></span>
+<span id="cb4-18"><a href="#cb4-18" tabindex="-1"></a><span class="co">#&gt; sd(z1_1_Intercept)     0.33      0.02     0.30     0.37 1.00     1228     2060</span></span>
+<span id="cb4-19"><a href="#cb4-19" tabindex="-1"></a><span class="co">#&gt; sd(z2_1_Intercept)     0.30      0.01     0.28     0.33 1.00     1134     1929</span></span>
+<span id="cb4-20"><a href="#cb4-20" tabindex="-1"></a><span class="co">#&gt; sd(z3_1_Intercept)     0.39      0.02     0.35     0.43 1.00     1731     2763</span></span>
+<span id="cb4-21"><a href="#cb4-21" tabindex="-1"></a><span class="co">#&gt; sd(z4_1_Intercept)     0.30      0.02     0.27     0.33 1.00     1710     2483</span></span>
 <span id="cb4-22"><a href="#cb4-22" tabindex="-1"></a><span class="co">#&gt; </span></span>
 <span id="cb4-23"><a href="#cb4-23" tabindex="-1"></a><span class="co">#&gt; Regression Coefficients:</span></span>
 <span id="cb4-24"><a href="#cb4-24" tabindex="-1"></a><span class="co">#&gt;                Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS</span></span>
-<span id="cb4-25"><a href="#cb4-25" tabindex="-1"></a><span class="co">#&gt; ilr1_Intercept    -0.44      0.02    -0.48    -0.39 1.00      942     1598</span></span>
-<span id="cb4-26"><a href="#cb4-26" tabindex="-1"></a><span class="co">#&gt; ilr2_Intercept     1.47      0.02     1.42     1.51 1.01      876     1608</span></span>
-<span id="cb4-27"><a href="#cb4-27" tabindex="-1"></a><span class="co">#&gt; ilr3_Intercept    -0.88      0.03    -0.94    -0.82 1.00     1740     2565</span></span>
-<span id="cb4-28"><a href="#cb4-28" tabindex="-1"></a><span class="co">#&gt; ilr4_Intercept     0.65      0.02     0.60     0.69 1.00     1648     2562</span></span>
-<span id="cb4-29"><a href="#cb4-29" tabindex="-1"></a><span class="co">#&gt; ilr1_Stress       -0.01      0.00    -0.02    -0.00 1.00     5967     3302</span></span>
-<span id="cb4-30"><a href="#cb4-30" tabindex="-1"></a><span class="co">#&gt; ilr2_Stress        0.01      0.00     0.00     0.01 1.00     5446     3533</span></span>
-<span id="cb4-31"><a href="#cb4-31" tabindex="-1"></a><span class="co">#&gt; ilr3_Stress        0.00      0.01    -0.01     0.01 1.00     6975     3101</span></span>
-<span id="cb4-32"><a href="#cb4-32" tabindex="-1"></a><span class="co">#&gt; ilr4_Stress        0.01      0.00    -0.00     0.01 1.00     6794     3387</span></span>
+<span id="cb4-25"><a href="#cb4-25" tabindex="-1"></a><span class="co">#&gt; z1_1_Intercept    -0.44      0.02    -0.48    -0.39 1.00      942     1598</span></span>
+<span id="cb4-26"><a href="#cb4-26" tabindex="-1"></a><span class="co">#&gt; z2_1_Intercept     1.47      0.02     1.42     1.51 1.01      876     1608</span></span>
+<span id="cb4-27"><a href="#cb4-27" tabindex="-1"></a><span class="co">#&gt; z3_1_Intercept    -0.88      0.03    -0.94    -0.82 1.00     1740     2565</span></span>
+<span id="cb4-28"><a href="#cb4-28" tabindex="-1"></a><span class="co">#&gt; z4_1_Intercept     0.65      0.02     0.60     0.69 1.00     1648     2562</span></span>
+<span id="cb4-29"><a href="#cb4-29" tabindex="-1"></a><span class="co">#&gt; z1_1_Stress       -0.01      0.00    -0.02    -0.00 1.00     5967     3302</span></span>
+<span id="cb4-30"><a href="#cb4-30" tabindex="-1"></a><span class="co">#&gt; z2_1_Stress        0.01      0.00     0.00     0.01 1.00     5446     3533</span></span>
+<span id="cb4-31"><a href="#cb4-31" tabindex="-1"></a><span class="co">#&gt; z3_1_Stress        0.00      0.01    -0.01     0.01 1.00     6975     3101</span></span>
+<span id="cb4-32"><a href="#cb4-32" tabindex="-1"></a><span class="co">#&gt; z4_1_Stress        0.01      0.00    -0.00     0.01 1.00     6794     3387</span></span>
 <span id="cb4-33"><a href="#cb4-33" tabindex="-1"></a><span class="co">#&gt; </span></span>
 <span id="cb4-34"><a href="#cb4-34" tabindex="-1"></a><span class="co">#&gt; Further Distributional Parameters:</span></span>
 <span id="cb4-35"><a href="#cb4-35" tabindex="-1"></a><span class="co">#&gt;            Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS</span></span>
-<span id="cb4-36"><a href="#cb4-36" tabindex="-1"></a><span class="co">#&gt; sigma_ilr1     0.44      0.01     0.43     0.45 1.00     6228     3088</span></span>
-<span id="cb4-37"><a href="#cb4-37" tabindex="-1"></a><span class="co">#&gt; sigma_ilr2     0.38      0.00     0.37     0.39 1.00     6496     3182</span></span>
-<span id="cb4-38"><a href="#cb4-38" tabindex="-1"></a><span class="co">#&gt; sigma_ilr3     0.70      0.01     0.68     0.71 1.00     5403     3385</span></span>
-<span id="cb4-39"><a href="#cb4-39" tabindex="-1"></a><span class="co">#&gt; sigma_ilr4     0.53      0.01     0.51     0.54 1.00     5484     3418</span></span>
+<span id="cb4-36"><a href="#cb4-36" tabindex="-1"></a><span class="co">#&gt; sigma_z1_1     0.44      0.01     0.43     0.45 1.00     6228     3088</span></span>
+<span id="cb4-37"><a href="#cb4-37" tabindex="-1"></a><span class="co">#&gt; sigma_z2_1     0.38      0.00     0.37     0.39 1.00     6496     3182</span></span>
+<span id="cb4-38"><a href="#cb4-38" tabindex="-1"></a><span class="co">#&gt; sigma_z3_1     0.70      0.01     0.68     0.71 1.00     5403     3385</span></span>
+<span id="cb4-39"><a href="#cb4-39" tabindex="-1"></a><span class="co">#&gt; sigma_z4_1     0.53      0.01     0.51     0.54 1.00     5484     3418</span></span>
 <span id="cb4-40"><a href="#cb4-40" tabindex="-1"></a><span class="co">#&gt; </span></span>
 <span id="cb4-41"><a href="#cb4-41" tabindex="-1"></a><span class="co">#&gt; Residual Correlations: </span></span>
 <span id="cb4-42"><a href="#cb4-42" tabindex="-1"></a><span class="co">#&gt;                   Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS</span></span>
-<span id="cb4-43"><a href="#cb4-43" tabindex="-1"></a><span class="co">#&gt; rescor(ilr1,ilr2)    -0.54      0.01    -0.57    -0.52 1.00     5503     3659</span></span>
-<span id="cb4-44"><a href="#cb4-44" tabindex="-1"></a><span class="co">#&gt; rescor(ilr1,ilr3)    -0.18      0.02    -0.21    -0.14 1.00     5662     3335</span></span>
-<span id="cb4-45"><a href="#cb4-45" tabindex="-1"></a><span class="co">#&gt; rescor(ilr2,ilr3)    -0.05      0.02    -0.08    -0.02 1.00     4974     3475</span></span>
-<span id="cb4-46"><a href="#cb4-46" tabindex="-1"></a><span class="co">#&gt; rescor(ilr1,ilr4)     0.11      0.02     0.07     0.14 1.00     6096     3480</span></span>
-<span id="cb4-47"><a href="#cb4-47" tabindex="-1"></a><span class="co">#&gt; rescor(ilr2,ilr4)    -0.05      0.02    -0.08    -0.01 1.00     5544     3305</span></span>
-<span id="cb4-48"><a href="#cb4-48" tabindex="-1"></a><span class="co">#&gt; rescor(ilr3,ilr4)     0.56      0.01     0.54     0.58 1.00     5224     3252</span></span>
+<span id="cb4-43"><a href="#cb4-43" tabindex="-1"></a><span class="co">#&gt; rescor(z1_1,z2_1)    -0.54      0.01    -0.57    -0.52 1.00     5503     3659</span></span>
+<span id="cb4-44"><a href="#cb4-44" tabindex="-1"></a><span class="co">#&gt; rescor(z1_1,z3_1)    -0.18      0.02    -0.21    -0.14 1.00     5662     3335</span></span>
+<span id="cb4-45"><a href="#cb4-45" tabindex="-1"></a><span class="co">#&gt; rescor(z2_1,z3_1)    -0.05      0.02    -0.08    -0.02 1.00     4974     3475</span></span>
+<span id="cb4-46"><a href="#cb4-46" tabindex="-1"></a><span class="co">#&gt; rescor(z1_1,z4_1)     0.11      0.02     0.07     0.14 1.00     6096     3480</span></span>
+<span id="cb4-47"><a href="#cb4-47" tabindex="-1"></a><span class="co">#&gt; rescor(z2_1,z4_1)    -0.05      0.02    -0.08    -0.01 1.00     5544     3305</span></span>
+<span id="cb4-48"><a href="#cb4-48" tabindex="-1"></a><span class="co">#&gt; rescor(z3_1,z4_1)     0.56      0.01     0.54     0.58 1.00     5224     3252</span></span>
 <span id="cb4-49"><a href="#cb4-49" tabindex="-1"></a><span class="co">#&gt; </span></span>
 <span id="cb4-50"><a href="#cb4-50" tabindex="-1"></a><span class="co">#&gt; Draws were sampled using sample(hmc). For each parameter, Bulk_ESS</span></span>
 <span id="cb4-51"><a href="#cb4-51" tabindex="-1"></a><span class="co">#&gt; and Tail_ESS are effective sample size measures, and Rhat is the potential</span></span>
@@ -1702,14 +1702,14 @@ be fitted with an additional non-default argument
 <code>save_pars = save_pars(all = TRUE)</code>.</p>
 <div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="co"># intercept only</span></span>
 <span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a>mv0 <span class="ot">&lt;-</span> <span class="fu">brmcoda</span>(<span class="at">complr =</span> cilr,</span>
-<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a>               <span class="at">formula =</span> <span class="fu">mvbind</span>(ilr1, ilr2, ilr3, ilr4) <span class="sc">~</span> <span class="dv">1</span> <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> ID),</span>
+<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a>               <span class="at">formula =</span> <span class="fu">mvbind</span>(z1_1, z2_1, z3_1, z4_1) <span class="sc">~</span> <span class="dv">1</span> <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> ID),</span>
 <span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a>               <span class="at">iter =</span> <span class="dv">6000</span>, <span class="at">chains =</span> <span class="dv">8</span>, <span class="at">cores =</span> <span class="dv">8</span>, <span class="at">seed =</span> <span class="dv">123</span>, <span class="at">warmup =</span> <span class="dv">1000</span>,</span>
 <span id="cb5-5"><a href="#cb5-5" tabindex="-1"></a>               <span class="at">backend =</span> <span class="st">&quot;cmdstanr&quot;</span>, <span class="at">save_pars =</span> <span class="fu">save_pars</span>(<span class="at">all =</span> <span class="cn">TRUE</span>))</span>
 <span id="cb5-6"><a href="#cb5-6" tabindex="-1"></a><span class="co">#&gt; Warning: In the future, &#39;rescor&#39; will be set to FALSE by default for all models. It is thus</span></span>
 <span id="cb5-7"><a href="#cb5-7" tabindex="-1"></a><span class="co">#&gt; recommended to explicitely set &#39;rescor&#39; via &#39;set_rescor&#39; instead of using the default.</span></span>
 <span id="cb5-8"><a href="#cb5-8" tabindex="-1"></a><span class="co"># full model</span></span>
 <span id="cb5-9"><a href="#cb5-9" tabindex="-1"></a>mv <span class="ot">&lt;-</span> <span class="fu">brmcoda</span>(<span class="at">complr =</span> cilr,</span>
-<span id="cb5-10"><a href="#cb5-10" tabindex="-1"></a>              <span class="at">formula =</span> <span class="fu">mvbind</span>(ilr1, ilr2, ilr3, ilr4) <span class="sc">~</span> Stress <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> ID),</span>
+<span id="cb5-10"><a href="#cb5-10" tabindex="-1"></a>              <span class="at">formula =</span> <span class="fu">mvbind</span>(z1_1, z2_1, z3_1, z4_1) <span class="sc">~</span> Stress <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> ID),</span>
 <span id="cb5-11"><a href="#cb5-11" tabindex="-1"></a>              <span class="at">iter =</span> <span class="dv">6000</span>, <span class="at">chains =</span> <span class="dv">8</span>, <span class="at">cores =</span> <span class="dv">8</span>, <span class="at">seed =</span> <span class="dv">123</span>, <span class="at">warmup =</span> <span class="dv">1000</span>,</span>
 <span id="cb5-12"><a href="#cb5-12" tabindex="-1"></a>              <span class="at">backend =</span> <span class="st">&quot;cmdstanr&quot;</span>, <span class="at">save_pars =</span> <span class="fu">save_pars</span>(<span class="at">all =</span> <span class="cn">TRUE</span>))</span>
 <span id="cb5-13"><a href="#cb5-13" tabindex="-1"></a><span class="co">#&gt; Warning: In the future, &#39;rescor&#39; will be set to FALSE by default for all models. It is thus</span></span>

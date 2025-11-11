@@ -1,6 +1,6 @@
 #' Between-person Simple Substitution
 #' 
-#' This function is an alias of \code{\link{substitution}} to estimates the the difference in an outcome
+#' This function is an alias of \code{\link{substitution}} to estimates the difference in an outcome
 #' when compositional parts are substituted for specific unit(s) at \emph{between} level
 #' using a single reference composition (e.g., compositional mean at sample level).
 #' It is recommended that users run substitution model using the \code{\link{substitution}} function.
@@ -22,33 +22,42 @@
 #' 
 #' # model with compositional predictor at between and between-person levels
 #' m <- brmcoda(complr = cilr, 
-#'              formula = Stress ~ bilr1 + bilr2 + bilr3 + bilr4 + 
-#'                                 wilr1 + wilr2 + wilr3 + wilr4 + Female + (1 | ID), 
+#'              formula = Stress ~ bz1_1 + bz2_1 + bz3_1 + bz4_1 + 
+#'                                 wz1_1 + wz2_1 + wz3_1 + wz4_1 + Female + (1 | ID), 
 #'              chain = 1, iter = 500,
 #'              backend = "cmdstanr")
-#' subm <- bsub(object = m, basesub = psub, delta = 5)
+#' subm <- bsub(object = m, base = psub, delta = 5)
 #' }}
 #' @export
 bsub <- function(object,
                  delta,
-                 basesub,
-                 summary = TRUE,
                  ref = "grandmean",
                  level = "between",
-                 weight = "equal",
+                 summary = TRUE,
                  aorg = TRUE,
+                 at = NULL,
+                 parts = 1,
+                 base,
+                 type = "one-to-one",
+                 weight = "equal",
                  scale = c("response", "linear"),
-                 comparison = "one-to-one",
                  cores = NULL,
                  ...) {
   
   # ref <- "grandmean"
   level <- "between"
   
+  # if parts is numeric, get_parts
+  if (is.numeric(parts)) {
+    parts <- .get_parts(object[["complr"]], parts)
+  }
+  
   # d0 -------------------------------
   if (isTRUE(ref == "grandmean")) {
     d0 <- build.rg(object = object,
                    ref = ref,
+                   parts = parts,
+                   at = at,
                    level = level,
                    weight = weight,
                    fill = FALSE)
@@ -68,15 +77,15 @@ bsub <- function(object,
     ref <- "users"
   }
   d0 <- as.data.table(d0)
-  
+
   # error if delta out of range
-  comp0 <- d0[1, colnames(object$complr$between_comp), with = FALSE]
+  x0 <- d0[1, paste0("b", parts), with = FALSE]
   
   delta <- as.integer(delta)
-  if(isTRUE(any(delta > min(comp0)))) {
+  if(isTRUE(any(delta > min(x0)))) {
     stop(sprintf(
       "delta value should be less than or equal to %s, which is the amount of composition part available for pairwise substitution.",
-  round(min(comp0), 2)
+  round(min(x0), 2)
     ))
   }
   
@@ -92,17 +101,19 @@ bsub <- function(object,
   # yb ---------------------------------
   out <- .get.bsub(
     object = object,
-    basesub = basesub,
+    base = base,
     delta = delta,
-    comp0 = comp0,
+    parts = parts,
+    x0 = x0,
     d0 = d0,
     y0 = y0,
+    at = at,
     level = level,
     ref = ref,
     aorg = aorg,
     summary = summary,
     scale = scale,
-    comparison = comparison,
+    type = type,
     cores = cores,
     ...
   )

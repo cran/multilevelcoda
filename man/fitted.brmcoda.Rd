@@ -5,7 +5,7 @@
 \alias{fitted}
 \title{Expected Values of the Posterior Predictive Distribution}
 \usage{
-\method{fitted}{brmcoda}(object, scale = c("linear", "response"), summary = TRUE, ...)
+\method{fitted}{brmcoda}(object, scale = c("linear", "response"), parts = 1, summary = TRUE, ...)
 }
 \arguments{
 \item{object}{An object of class \code{brmcoda}.}
@@ -17,8 +17,12 @@ results are returned on the log-ratio scale.
 If \code{"response"}, results are returned on the compositional scale
 of the response variable.}
 
-\item{summary}{Should summary statistics be returned
-instead of the raw values? Default is \code{TRUE}.}
+\item{parts}{Only for models with compositional response
+A optional character string specifying names of compositional parts that make up the response in \code{brmcoda} model.
+This should correspond to a single set of names of compositional parts specified
+in the \code{complr} object. Default to the first composition in the \code{complr} object.}
+
+\item{summary}{Should summary statistics be returned instead of the raw values? Default is \code{TRUE}.}
 
 \item{...}{Further arguments passed to \code{\link[brms:fitted.brmsfit]{fitted.brmsfit}}
 that control additional aspects of prediction.}
@@ -60,27 +64,27 @@ averaged across draws should be very similar.
 ## fit a model
 if(requireNamespace("cmdstanr")){
   ## compute composition and ilr coordinates
-  cilr <- complr(data = mcompd, sbp = sbp,
+  x <- complr(data = mcompd, sbp = sbp,
                  parts = c("TST", "WAKE", "MVPA", "LPA", "SB"),
                  idvar = "ID", total = 1440)
-  
+
   ## fit a model
-  m1 <- brmcoda(complr = cilr,
-                formula = Stress ~ bilr1 + bilr2 + bilr3 + bilr4 +
-                  wilr1 + wilr2 + wilr3 + wilr4 + (1 | ID),
+  m1 <- brmcoda(complr = x,
+                formula = Stress ~ bz1_1 + bz2_1 + bz3_1 + bz4_1 +
+                                   wz1_1 + wz2_1 + wz3_1 + wz4_1 + (1 | ID),
                 chain = 1, iter = 500,
                 backend = "cmdstanr")
-  
+
   ## compute expected predictions
   epred <- fitted(m1)
   head(epred)
-  
+
   ## fit a model with compositional outcome
-  m2 <- brmcoda(complr = cilr,
-                formula = mvbind(ilr1, ilr2, ilr3, ilr4) ~ Stress + Female + (1 | ID),
+  m2 <- brmcoda(complr = x,
+                formula = mvbind(z1_1, z2_1, z3_1, z4_1) ~ Stress + Female + (1 | ID),
                 chain = 1, iter = 500,
                 backend = "cmdstanr")
-  
+
   ## expected predictions on compositional scale
   epredcomp <- fitted(m2, scale = "response")
   head(epredcomp)

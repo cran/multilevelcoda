@@ -3,82 +3,115 @@
 #' Make a plot of \code{\link{substitution}} model results.
 #'
 #' @param x A \code{\link{substitution}} class object.
-#' @param to A character value or vector specifying the names of the compositional parts
+#' @param to An optional character value or vector specifying the names of the compositional parts
 #' that were reallocated to in the model.
 #' @param ref A character value of ((\code{"grandmean"} or \code{"clustermean"} or \code{"users"}),
-#' @param level A character value of (\code{"between"}, \code{"within"}), or \code{"aggregate"}).
+#' @param level An optional character value of (\code{"between"}, \code{"within"}), or \code{"aggregate"}).
 #' @param ... Further components to the plot, followed by a plus sign (+).
 #'
 #' @return A ggplot graph object showing the estimated difference in outcome when
 #' each pair of compositional variables are substituted for a specific time.
-#' 
-#' @importFrom ggplot2 ggplot aes geom_hline geom_vline geom_line geom_pointrange geom_ribbon facet_grid xlab ylab
+#'
+#' @importFrom ggplot2 ggplot aes geom_hline geom_vline geom_line geom_pointrange geom_ribbon
+#' @importFrom ggplot2 facet_wrap vars label_both label_bquote position_dodge2
+#' @importFrom ggplot2 theme theme_bw scale_fill_manual scale_colour_manual
 #' @importFrom data.table copy
-#' 
+#' @importFrom bayesplot color_scheme_get
+#'
 #' @method plot substitution
 #' @export
-plot.substitution <- function(x, to,
-                              ref, level, ...) {
+plot.substitution <- function(x, to, ref, level, ...) {
   
-  if (isFALSE(any(c("grandmean", "clustermean", "users") %in% ref)) ||
-      isTRUE(length(ref) > 1)) {
-    stop("'ref' should be either one of the following: \"grandmean\", \"clustermean\", or \"users\".")
+  if (missing(ref)) {
+    ref <- x$ref
   }
-  ref <- as.character(ref)
-  
-  if (isFALSE(any(c("between", "within", "aggregate") %in% level)) ||
-      isTRUE(length(level) > 1)) {
-    stop("'level' should be either one of the following: \"between\", \"within\", \"aggregate\".")
+  if (missing(level)) {
+    level <- x$level
   }
-  level <- as.character(level)
+  if (missing(to)) {
+    to <- x$parts
+  }
   
-  # extract delta
-  delta.pos <- x$delta
-  delta.neg <- -1*abs(x$delta)
-  delta <- c(delta.pos, delta.neg)
-  
-  # extract data
-  tmp <- summary(object = x,
-                 delta = delta,
-                 to = to,
-                 ref = ref,
-                 level = level,
-                 digits = "asis"
-  )
-  
-  # plot
-  if (isTRUE(is.sequential(delta.pos))) {
-    plotsub <- ggplot(tmp, 
-                      aes(x = Delta, y = Mean)) +
+  if (length(x$delta) > 1) {
+    # extract data
+    tmp <- summary(
+      object = x,
+      delta = sort(c(-abs(x$delta), abs(x$delta))),
+      to = to,
+      ref = ref,
+      level = level,
+      digits = "asis"
+    )
+    col_pal <- rev(unlist(color_scheme_get("brewer-PuBuGn")))
+    names(col_pal) <- sort(x$parts)
+    
+    ggplot(tmp, aes(x = Delta,  y = Estimate, colour = From, fill = From)) +
       geom_hline(yintercept = 0,
-                 linewidth = 0.2,
+                 linewidth = 0.25,
                  linetype = 2) +
       geom_vline(xintercept = 0,
-                 linewidth = 0.2,
+                 linewidth = 0.25,
                  linetype = 2) +
-      geom_ribbon(
-        aes(ymin = CI_low,
-            ymax = CI_high, fill = From),
-        alpha = 2 / 10,
-        linewidth = 1 / 10) +
-      geom_line(aes(colour = From), linewidth = 1) +
-      facet_grid( ~ From)
+      geom_line(linewidth = 0.75) +
+      geom_ribbon(aes(ymin = CI_low, ymax = CI_high),
+                  alpha = 3 / 10,
+                  linewidth = 0) +
+      scale_colour_manual(values = if (length(x$parts) < 7) col_pal else NULL) +
+      scale_fill_manual(values = if (length(x$parts) < 7) col_pal else NULL) +
+      facet_wrap(
+        vars(From, To),
+        labeller = ggplot2::label_bquote(cols = .(as.character(From)) %<-% minutes %->% .(as.character(To))),
+        nrow = length(x$parts)
+      ) +
+      theme_bw() +
+      theme(
+        legend.position  = "none",
+        strip.background = element_rect(fill = "transparent", color = "black", linewidth = 0.5),
+        axis.ticks       = element_blank()
+      )
     
   } else {
-    plotsub <- ggplot(tmp,
-                      aes(x = Delta, y = Mean)) +
-      geom_hline(yintercept = 0,
-                 linewidth = 0.2,
-                 linetype = 2) +
-      geom_vline(xintercept = 0,
-                 linewidth = 0.2,
-                 linetype = 2) +
-      geom_line(aes(colour = From)) +
-      geom_pointrange(aes(ymin = CI_low, ymax = CI_high, colour = From)) +
-      facet_grid( ~ From)
+    # extract data
+    tmp <- summary(
+      object = x,
+      delta = x$delta,
+      to = to,
+      ref = ref,
+      level = level,
+      digits = "asis"
+    )
+    col_pal <- unlist(color_scheme_get("blue"))
+    names(col_pal) <- sort(x$parts)
     
+    ggplot(tmp, aes(x = Delta, y = Estimate, colour = From)) +
+      geom_hline(yintercept = 0,
+                 linewidth = 0.25,
+                 linetype = 2) +
+      # geom_vline(xintercept = 0,
+      #            linewidth = 0.2,
+      #            linetype = 2) +
+      geom_pointrange(aes(ymin = CI_low, ymax = CI_high), 
+                      position = position_dodge2(width = 0.25),
+                      size = 0.5, linewidth = 0.75
+                      ) +
+      scale_colour_manual(values = if (length(x$parts) < 7) col_pal else NULL) +
+      facet_wrap(~ To,
+                 labeller = label_both,
+                 nrow = length(x$parts)) +
+      # facet_wrap(
+      #   vars(From, To),
+      #   labeller = ggplot2::label_bquote(cols = .(as.character(From)) %->% .(as.character(To))),
+      #   nrow = length(x$parts)
+      # ) +
+      theme_bw() +
+      theme(
+        legend.position = "bottom",
+        strip.background = element_rect(fill = "transparent", color = "black", linewidth = 0.5),
+        axis.text.x      = element_blank(),
+        axis.title.x     = element_blank(),
+        axis.ticks       = element_blank()
+      )
   }
-  plotsub
 }
 
 #' Trace and Density Plots for MCMC Draws plot
@@ -91,7 +124,7 @@ plot.substitution <- function(x, to,
 #' @inherit brms::plot.brmsfit return
 #'
 #' @seealso \code{\link[brms:plot.brmsfit]{plot.brmsfit}}
-#' 
+#'
 #' @method plot brmcoda
 #' @export
 #' @examples
@@ -101,8 +134,8 @@ plot.substitution <- function(x, to,
 #'
 #' # model with compositional predictor at between and within-person levels
 #' fit <- brmcoda(complr = cilr,
-#'                formula = Stress ~ bilr1 + bilr2 + bilr3 + bilr4 +
-#'                                  wilr1 + wilr2 + wilr3 + wilr4 + (1 | ID),
+#'                 formula = Stress ~ bz1_1 + bz2_1 + bz3_1 + bz4_1 +
+#'                                    wz1_1 + wz2_1 + wz3_1 + wz4_1 + (1 | ID),
 #'                chain = 1, iter = 500)
 #' plot(fit)
 #' }
@@ -119,9 +152,9 @@ plot.brmcoda <- function(x, ...) {
 #' @param ... Further arguments passed to \code{\link[brms:pairs.brmsfit]{pairs.brmsfit}}.
 #'
 #' @inherit brms::pairs.brmsfit return
-#' 
+#'
 #' @seealso \code{\link[brms:pairs.brmsfit]{pairs.brmsfit}}
-#' 
+#'
 #' @importFrom graphics pairs
 #' @method pairs brmcoda
 #' @export
@@ -132,8 +165,8 @@ plot.brmcoda <- function(x, ...) {
 #'
 #' # model with compositional predictor at between and within-person levels
 #' fit <- brmcoda(complr = cilr,
-#'                formula = Stress ~ bilr1 + bilr2 + bilr3 + bilr4 +
-#'                                  wilr1 + wilr2 + wilr3 + wilr4 + (1 | ID),
+#'                 formula = Stress ~ bz1_1 + bz2_1 + bz3_1 + bz4_1 +
+#'                                    wz1_1 + wz2_1 + wz3_1 + wz4_1 + (1 | ID),
 #'                chain = 1, iter = 500)
 #' pairs(fit)
 #' }
@@ -148,14 +181,14 @@ pairs.brmcoda <- function(x, ...) {
 #'
 #' @param object A \code{brmcoda} class object.
 #' @param ... Further arguments passed to \code{\link[brms:mcmc_plot.brmsfit]{mcmc_plot.brmsfit}}.
-#' 
+#'
 #' @inherit brms::mcmc_plot.brmsfit return
-#' 
+#'
 #' @seealso \code{\link[brms:mcmc_plot.brmsfit]{mcmc_plot.brmsfit}}
-#' 
+#'
 #' @importFrom brms mcmc_plot
 #' @method mcmc_plot brmcoda
-#' 
+#'
 #' @export
 #' @examples
 #' \dontrun{
@@ -164,8 +197,8 @@ pairs.brmcoda <- function(x, ...) {
 #'
 #' # model with compositional predictor at between and within-person levels
 #' fit <- brmcoda(complr = cilr,
-#'                formula = Stress ~ bilr1 + bilr2 + bilr3 + bilr4 +
-#'                                  wilr1 + wilr2 + wilr3 + wilr4 + (1 | ID),
+#'                 formula = Stress ~ bz1_1 + bz2_1 + bz3_1 + bz4_1 +
+#'                                    wz1_1 + wz2_1 + wz3_1 + wz4_1 + (1 | ID),
 #'                chain = 1, iter = 500)
 #' mcmc_plot(fit)
 #' }

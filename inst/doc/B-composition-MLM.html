@@ -2039,14 +2039,14 @@ sleep-wake behaviours (expressed as ILR coordinates).</p>
 <p><em>Notes: make sure you pass the correct names of the ILR
 coordinates to <code>brms</code> model.</em></p>
 <div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a>m <span class="ot">&lt;-</span> <span class="fu">brmcoda</span>(<span class="at">complr =</span> cilr,</span>
-<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a>             <span class="at">formula =</span> Stress <span class="sc">~</span> bilr1 <span class="sc">+</span> bilr2 <span class="sc">+</span> bilr3 <span class="sc">+</span> bilr4 <span class="sc">+</span></span>
-<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a>               wilr1 <span class="sc">+</span> wilr2 <span class="sc">+</span> wilr3 <span class="sc">+</span> wilr4 <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> ID),</span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a>             <span class="at">formula =</span> Stress <span class="sc">~</span> bz1_1 <span class="sc">+</span> bz2_1 <span class="sc">+</span> bz3_1 <span class="sc">+</span> bz4_1 <span class="sc">+</span></span>
+<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a>               wz1_1 <span class="sc">+</span> wz2_1 <span class="sc">+</span> wz3_1 <span class="sc">+</span> wz4_1 <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> ID),</span>
 <span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a>             <span class="at">cores =</span> <span class="dv">8</span>, <span class="at">seed =</span> <span class="dv">123</span>, <span class="at">backend =</span> <span class="st">&quot;cmdstanr&quot;</span>)</span></code></pre></div>
 <p>Here is a <code>summary()</code> of the model results.</p>
 <div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="fu">summary</span>(m)</span>
 <span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a><span class="co">#&gt;  Family: gaussian </span></span>
 <span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a><span class="co">#&gt;   Links: mu = identity; sigma = identity </span></span>
-<span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a><span class="co">#&gt; Formula: Stress ~ bilr1 + bilr2 + bilr3 + bilr4 + wilr1 + wilr2 + wilr3 + wilr4 + (1 | ID) </span></span>
+<span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a><span class="co">#&gt; Formula: Stress ~ bz1_1 + bz2_1 + bz3_1 + bz4_1 + wz1_1 + wz2_1 + wz3_1 + wz4_1 + (1 | ID) </span></span>
 <span id="cb5-5"><a href="#cb5-5" tabindex="-1"></a><span class="co">#&gt;    Data: tmp (Number of observations: 3540) </span></span>
 <span id="cb5-6"><a href="#cb5-6" tabindex="-1"></a><span class="co">#&gt;   Draws: 4 chains, each with iter = 2000; warmup = 1000; thin = 1;</span></span>
 <span id="cb5-7"><a href="#cb5-7" tabindex="-1"></a><span class="co">#&gt;          total post-warmup draws = 4000</span></span>
@@ -2059,14 +2059,14 @@ coordinates to <code>brms</code> model.</em></p>
 <span id="cb5-14"><a href="#cb5-14" tabindex="-1"></a><span class="co">#&gt; Regression Coefficients:</span></span>
 <span id="cb5-15"><a href="#cb5-15" tabindex="-1"></a><span class="co">#&gt;           Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS</span></span>
 <span id="cb5-16"><a href="#cb5-16" tabindex="-1"></a><span class="co">#&gt; Intercept     2.61      0.49     1.66     3.60 1.00     1101     1761</span></span>
-<span id="cb5-17"><a href="#cb5-17" tabindex="-1"></a><span class="co">#&gt; bilr1         0.19      0.32    -0.46     0.82 1.00      943     1863</span></span>
-<span id="cb5-18"><a href="#cb5-18" tabindex="-1"></a><span class="co">#&gt; bilr2         0.39      0.35    -0.29     1.06 1.00     1061     1922</span></span>
-<span id="cb5-19"><a href="#cb5-19" tabindex="-1"></a><span class="co">#&gt; bilr3         0.14      0.22    -0.28     0.56 1.01      895     1673</span></span>
-<span id="cb5-20"><a href="#cb5-20" tabindex="-1"></a><span class="co">#&gt; bilr4        -0.04      0.28    -0.59     0.51 1.00      976     1923</span></span>
-<span id="cb5-21"><a href="#cb5-21" tabindex="-1"></a><span class="co">#&gt; wilr1        -0.33      0.12    -0.56    -0.09 1.00     3226     3037</span></span>
-<span id="cb5-22"><a href="#cb5-22" tabindex="-1"></a><span class="co">#&gt; wilr2         0.06      0.13    -0.20     0.33 1.00     3469     2836</span></span>
-<span id="cb5-23"><a href="#cb5-23" tabindex="-1"></a><span class="co">#&gt; wilr3        -0.09      0.08    -0.25     0.06 1.00     3088     2932</span></span>
-<span id="cb5-24"><a href="#cb5-24" tabindex="-1"></a><span class="co">#&gt; wilr4         0.23      0.10     0.04     0.42 1.00     3225     2965</span></span>
+<span id="cb5-17"><a href="#cb5-17" tabindex="-1"></a><span class="co">#&gt; bz1_1         0.19      0.32    -0.46     0.82 1.00      943     1863</span></span>
+<span id="cb5-18"><a href="#cb5-18" tabindex="-1"></a><span class="co">#&gt; bz2_1         0.39      0.35    -0.29     1.06 1.00     1061     1922</span></span>
+<span id="cb5-19"><a href="#cb5-19" tabindex="-1"></a><span class="co">#&gt; bz3_1         0.14      0.22    -0.28     0.56 1.01      895     1673</span></span>
+<span id="cb5-20"><a href="#cb5-20" tabindex="-1"></a><span class="co">#&gt; bz4_1        -0.04      0.28    -0.59     0.51 1.00      976     1923</span></span>
+<span id="cb5-21"><a href="#cb5-21" tabindex="-1"></a><span class="co">#&gt; wz1_1        -0.33      0.12    -0.56    -0.09 1.00     3226     3037</span></span>
+<span id="cb5-22"><a href="#cb5-22" tabindex="-1"></a><span class="co">#&gt; wz2_1         0.06      0.13    -0.20     0.33 1.00     3469     2836</span></span>
+<span id="cb5-23"><a href="#cb5-23" tabindex="-1"></a><span class="co">#&gt; wz3_1        -0.09      0.08    -0.25     0.06 1.00     3088     2932</span></span>
+<span id="cb5-24"><a href="#cb5-24" tabindex="-1"></a><span class="co">#&gt; wz4_1         0.23      0.10     0.04     0.42 1.00     3225     2965</span></span>
 <span id="cb5-25"><a href="#cb5-25" tabindex="-1"></a><span class="co">#&gt; </span></span>
 <span id="cb5-26"><a href="#cb5-26" tabindex="-1"></a><span class="co">#&gt; Further Distributional Parameters:</span></span>
 <span id="cb5-27"><a href="#cb5-27" tabindex="-1"></a><span class="co">#&gt;       Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS</span></span>
@@ -2093,48 +2093,48 @@ resulting interpretation would be as follows:</p>
 </thead>
 <tbody>
 <tr class="odd">
-<td><code>bilr1</code></td>
+<td><code>bz1_1</code></td>
 <td>Between-person sleep (<code>TST</code> &amp; <code>WAKE</code>) vs
 wake (<code>MVPA</code>, <code>LPA</code>, &amp; <code>SB</code>)
 behaviours</td>
 </tr>
 <tr class="even">
-<td><code>bilr2</code></td>
+<td><code>bz2_1</code></td>
 <td>Between-person <code>TST</code> vs <code>WAKE</code></td>
 </tr>
 <tr class="odd">
-<td><code>bilr3</code></td>
+<td><code>bz3_1</code></td>
 <td>Between-person <code>MVPA</code> vs (<code>LPA</code> and
 <code>SB</code>)</td>
 </tr>
 <tr class="even">
-<td><code>bilr4</code></td>
+<td><code>bz4_1</code></td>
 <td>Between-person <code>LPA</code> vs <code>SB</code></td>
 </tr>
 <tr class="odd">
-<td><code>wilr1</code></td>
+<td><code>wz1_1</code></td>
 <td>Within-person <code>Sleep</code> (<code>TST</code> &amp;
 <code>WAKE</code>) vs wake (<code>MVPA</code>, <code>LPA</code>, &amp;
 <code>SB</code>) behaviours</td>
 </tr>
 <tr class="even">
-<td><code>wilr2</code></td>
+<td><code>wz2_1</code></td>
 <td>Within-person <code>TST</code> vs <code>WAKE</code></td>
 </tr>
 <tr class="odd">
-<td><code>wilr3</code></td>
+<td><code>wz3_1</code></td>
 <td>Within-person <code>MVPA</code> vs (<code>LPA</code> and
 <code>SB</code>)</td>
 </tr>
 <tr class="even">
-<td><code>wilr4</code></td>
+<td><code>wz4_1</code></td>
 <td>Within-person <code>LPA</code> vs <code>SB</code></td>
 </tr>
 </tbody>
 </table>
 <p>Due to the nature of within-person ILR coordinates, it is often
 challenging to interpret these results in great details. For example,
-the significant coefficient for <code>wilr1</code> shows that the
+the significant coefficient for <code>wz1_1</code> shows that the
 within-person change in sleep behaviours (sleep duration and time awake
 in bed combined), relative to wake behaviours (moderate to vigorous
 physical activity, light physical activity, and sedentary behaviour) on
@@ -2181,20 +2181,20 @@ must be fitted with an additional non-default argument
 <span id="cb6-6"><a href="#cb6-6" tabindex="-1"></a></span>
 <span id="cb6-7"><a href="#cb6-7" tabindex="-1"></a><span class="co"># between-person composition only model</span></span>
 <span id="cb6-8"><a href="#cb6-8" tabindex="-1"></a>m1 <span class="ot">&lt;-</span> <span class="fu">brmcoda</span>(<span class="at">complr =</span> cilr,</span>
-<span id="cb6-9"><a href="#cb6-9" tabindex="-1"></a>             <span class="at">formula =</span> Stress <span class="sc">~</span> bilr1 <span class="sc">+</span> bilr2 <span class="sc">+</span> bilr3 <span class="sc">+</span> bilr4 <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> ID),</span>
+<span id="cb6-9"><a href="#cb6-9" tabindex="-1"></a>             <span class="at">formula =</span> Stress <span class="sc">~</span> bz1_1 <span class="sc">+</span> bz2_1 <span class="sc">+</span> bz3_1 <span class="sc">+</span> bz4_1 <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> ID),</span>
 <span id="cb6-10"><a href="#cb6-10" tabindex="-1"></a>             <span class="at">iter =</span> <span class="dv">6000</span>, <span class="at">chains =</span> <span class="dv">8</span>, <span class="at">cores =</span> <span class="dv">8</span>, <span class="at">seed =</span> <span class="dv">123</span>, <span class="at">warmup =</span> <span class="dv">1000</span>,</span>
 <span id="cb6-11"><a href="#cb6-11" tabindex="-1"></a>             <span class="at">backend =</span> <span class="st">&quot;cmdstanr&quot;</span>, <span class="at">save_pars =</span> <span class="fu">save_pars</span>(<span class="at">all =</span> <span class="cn">TRUE</span>))</span>
 <span id="cb6-12"><a href="#cb6-12" tabindex="-1"></a></span>
 <span id="cb6-13"><a href="#cb6-13" tabindex="-1"></a><span class="co"># within-person composition only model</span></span>
 <span id="cb6-14"><a href="#cb6-14" tabindex="-1"></a>m2 <span class="ot">&lt;-</span> <span class="fu">brmcoda</span>(<span class="at">complr =</span> cilr,</span>
-<span id="cb6-15"><a href="#cb6-15" tabindex="-1"></a>             <span class="at">formula =</span> Stress <span class="sc">~</span> wilr1 <span class="sc">+</span> wilr2 <span class="sc">+</span> wilr3 <span class="sc">+</span> wilr4 <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> ID),</span>
+<span id="cb6-15"><a href="#cb6-15" tabindex="-1"></a>             <span class="at">formula =</span> Stress <span class="sc">~</span> wz1_1 <span class="sc">+</span> wz2_1 <span class="sc">+</span> wz3_1 <span class="sc">+</span> wz4_1 <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> ID),</span>
 <span id="cb6-16"><a href="#cb6-16" tabindex="-1"></a>             <span class="at">iter =</span> <span class="dv">6000</span>, <span class="at">chains =</span> <span class="dv">8</span>, <span class="at">cores =</span> <span class="dv">8</span>, <span class="at">seed =</span> <span class="dv">123</span>, <span class="at">warmup =</span> <span class="dv">1000</span>,</span>
 <span id="cb6-17"><a href="#cb6-17" tabindex="-1"></a>             <span class="at">backend =</span> <span class="st">&quot;cmdstanr&quot;</span>, <span class="at">save_pars =</span> <span class="fu">save_pars</span>(<span class="at">all =</span> <span class="cn">TRUE</span>))</span>
 <span id="cb6-18"><a href="#cb6-18" tabindex="-1"></a></span>
 <span id="cb6-19"><a href="#cb6-19" tabindex="-1"></a><span class="co"># full model</span></span>
 <span id="cb6-20"><a href="#cb6-20" tabindex="-1"></a>m <span class="ot">&lt;-</span> <span class="fu">brmcoda</span>(<span class="at">complr =</span> cilr,</span>
-<span id="cb6-21"><a href="#cb6-21" tabindex="-1"></a>             <span class="at">formula =</span> Stress <span class="sc">~</span> bilr1 <span class="sc">+</span> bilr2 <span class="sc">+</span> bilr3 <span class="sc">+</span> bilr4 <span class="sc">+</span></span>
-<span id="cb6-22"><a href="#cb6-22" tabindex="-1"></a>               wilr1 <span class="sc">+</span> wilr2 <span class="sc">+</span> wilr3 <span class="sc">+</span> wilr4 <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> ID),</span>
+<span id="cb6-21"><a href="#cb6-21" tabindex="-1"></a>             <span class="at">formula =</span> Stress <span class="sc">~</span> bz1_1 <span class="sc">+</span> bz2_1 <span class="sc">+</span> bz3_1 <span class="sc">+</span> bz4_1 <span class="sc">+</span></span>
+<span id="cb6-22"><a href="#cb6-22" tabindex="-1"></a>               wz1_1 <span class="sc">+</span> wz2_1 <span class="sc">+</span> wz3_1 <span class="sc">+</span> wz4_1 <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> ID),</span>
 <span id="cb6-23"><a href="#cb6-23" tabindex="-1"></a>             <span class="at">iter =</span> <span class="dv">6000</span>, <span class="at">chains =</span> <span class="dv">8</span>, <span class="at">cores =</span> <span class="dv">8</span>, <span class="at">seed =</span> <span class="dv">123</span>, <span class="at">warmup =</span> <span class="dv">1000</span>,</span>
 <span id="cb6-24"><a href="#cb6-24" tabindex="-1"></a>             <span class="at">backend =</span> <span class="st">&quot;cmdstanr&quot;</span>, <span class="at">save_pars =</span> <span class="fu">save_pars</span>(<span class="at">all =</span> <span class="cn">TRUE</span>))</span></code></pre></div>
 <p>We can now compare these models with the
@@ -2206,9 +2206,9 @@ model as reference.</p>
 <span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a><span class="co">#&gt; Bayes Factors for Model Comparison</span></span>
 <span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a><span class="co">#&gt; </span></span>
 <span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a><span class="co">#&gt;     Model                                                                       BF</span></span>
-<span id="cb8-5"><a href="#cb8-5" tabindex="-1"></a><span class="co">#&gt; [1] bilr1 + bilr2 + bilr3 + bilr4 + wilr1 + wilr2 + wilr3 + wilr4 + (1 | ID)  3.45</span></span>
-<span id="cb8-6"><a href="#cb8-6" tabindex="-1"></a><span class="co">#&gt; [2] bilr1 + bilr2 + bilr3 + bilr4 + (1 | ID)                                 0.294</span></span>
-<span id="cb8-7"><a href="#cb8-7" tabindex="-1"></a><span class="co">#&gt; [3] wilr1 + wilr2 + wilr3 + wilr4 + (1 | ID)                                 11.63</span></span>
+<span id="cb8-5"><a href="#cb8-5" tabindex="-1"></a><span class="co">#&gt; [1] bz1_1 + bz2_1 + bz3_1 + bz4_1 + wz1_1 + wz2_1 + wz3_1 + wz4_1 + (1 | ID)  3.45</span></span>
+<span id="cb8-6"><a href="#cb8-6" tabindex="-1"></a><span class="co">#&gt; [2] bz1_1 + bz2_1 + bz3_1 + bz4_1 + (1 | ID)                                 0.294</span></span>
+<span id="cb8-7"><a href="#cb8-7" tabindex="-1"></a><span class="co">#&gt; [3] wz1_1 + wz2_1 + wz3_1 + wz4_1 + (1 | ID)                                 11.63</span></span>
 <span id="cb8-8"><a href="#cb8-8" tabindex="-1"></a><span class="co">#&gt; </span></span>
 <span id="cb8-9"><a href="#cb8-9" tabindex="-1"></a><span class="co">#&gt; * Against Denominator: [4] 1 + (1 | ID)</span></span>
 <span id="cb8-10"><a href="#cb8-10" tabindex="-1"></a><span class="co">#&gt; *   Bayes Factor Type: marginal likelihoods (bridgesampling)</span></span></code></pre></div>
@@ -2220,11 +2220,11 @@ the null (intercept only).</p>
 <span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a><span class="co">#&gt; Bayes Factors for Model Comparison</span></span>
 <span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a><span class="co">#&gt; </span></span>
 <span id="cb9-4"><a href="#cb9-4" tabindex="-1"></a><span class="co">#&gt;     Model                                       BF</span></span>
-<span id="cb9-5"><a href="#cb9-5" tabindex="-1"></a><span class="co">#&gt; [2] bilr1 + bilr2 + bilr3 + bilr4 + (1 | ID) 0.085</span></span>
-<span id="cb9-6"><a href="#cb9-6" tabindex="-1"></a><span class="co">#&gt; [3] wilr1 + wilr2 + wilr3 + wilr4 + (1 | ID)  3.37</span></span>
+<span id="cb9-5"><a href="#cb9-5" tabindex="-1"></a><span class="co">#&gt; [2] bz1_1 + bz2_1 + bz3_1 + bz4_1 + (1 | ID) 0.085</span></span>
+<span id="cb9-6"><a href="#cb9-6" tabindex="-1"></a><span class="co">#&gt; [3] wz1_1 + wz2_1 + wz3_1 + wz4_1 + (1 | ID)  3.37</span></span>
 <span id="cb9-7"><a href="#cb9-7" tabindex="-1"></a><span class="co">#&gt; [4] 1 + (1 | ID)                             0.290</span></span>
 <span id="cb9-8"><a href="#cb9-8" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb9-9"><a href="#cb9-9" tabindex="-1"></a><span class="co">#&gt; * Against Denominator: [1] bilr1 + bilr2 + bilr3 + bilr4 + wilr1 + wilr2 + wilr3 + wilr4 + (1 | ID)</span></span>
+<span id="cb9-9"><a href="#cb9-9" tabindex="-1"></a><span class="co">#&gt; * Against Denominator: [1] bz1_1 + bz2_1 + bz3_1 + bz4_1 + wz1_1 + wz2_1 + wz3_1 + wz4_1 + (1 | ID)</span></span>
 <span id="cb9-10"><a href="#cb9-10" tabindex="-1"></a><span class="co">#&gt; *   Bayes Factor Type: marginal likelihoods (bridgesampling)</span></span></code></pre></div>
 <p>Again, our data favours the within-person composition only model over
 the full model, giving 2.79 times more support.</p>

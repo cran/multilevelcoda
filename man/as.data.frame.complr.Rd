@@ -3,9 +3,10 @@
 \name{as.data.frame.complr}
 \alias{as.data.frame.complr}
 \alias{as.matrix.complr}
-\title{Extract Compositional Data from \code{complr} object.}
+\title{Extract amounts and compositions in conventional formats
+as data.frames, matrices, or arrays.}
 \usage{
-\method{as.data.frame}{complr}(x, row.names = NULL, optional = TRUE, ...)
+\method{as.data.frame}{complr}(x, row.names = NULL, optional = FALSE, ...)
 
 \method{as.matrix}{complr}(x, ...)
 }

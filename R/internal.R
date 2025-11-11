@@ -7,83 +7,38 @@ utils::globalVariables(c("i",  "..cols", ".", "To", "t", "head",  "fitted",
                          "sim", "condition",
                          "est", "lower", "upper", "JI", "N", "K", "D", "Stat", "Estimates", "MCSE",
                          "sigma", "OnTarget",
-                         "multisession", "sequential"
+                         "multisession", "sequential",
+                         "%->%", "%<-%", ".wgt.", "Estimate", "ida", "minutes", "wgt_at"
 ))
-
-
-# expand grid data frame
+#' @keywords internal
+#' expand grid data frame
+#' @noRd
 expand.grid.df <- function(...) Reduce(function(...) merge.data.frame(..., by = NULL, all = TRUE), list(...))
-
+expand.grid.dt <- function(...) {
+  as.data.table(Reduce(function(...) merge.data.frame(..., by = NULL, all = TRUE), list(...)))
+}
 # check sequence of number
 is.sequential <- function(x) {
   all(length(x) > 2 & all(abs(diff(x)) == 1))
 }
 
-# get composition and lr from a complr object
-.get.complr <- function(object, 
-                        weight = c("equal", "proportional"),
-                        ...) {
-  
-  if (identical(weight, "proportional") | is.null(object$idvar)) {
-    out <- list(
-      if(!is.null(object$comp)) (summary(object$comp, robust = TRUE)) else (NULL),
-      if(!is.null(object$between_comp)) (summary(object$between_comp, robust = TRUE)) else (NULL),
-      if(!is.null(object$within_comp)) (summary(object$within_comp, robust = TRUE)) else (NULL),
-      if(!is.null(object$logratio)) (data.frame(summary(object$logratio))) else (NULL),
-      if(!is.null(object$between_logratio)) (data.frame(summary(object$between_logratio))) else (NULL),
-      
-      if(!is.null(object$within_logratio)) (data.frame(summary(object$within_logratio))) else (NULL)
-    )
-  } else {
-    tcomp <- cbind(object$data[, object$idvar, with = FALSE], object$comp)[!duplicated(get(object$idvar))]
-    bcomp <- cbind(object$data[, object$idvar, with = FALSE], object$between_comp)[!duplicated(get(object$idvar))]
-    wcomp <- cbind(object$data[, object$idvar, with = FALSE], object$within_comp)[!duplicated(get(object$idvar))]
-    
-    tlr <- cbind(object$data[, object$idvar, with = FALSE], object$logratio)[!duplicated(get(object$idvar))]
-    blr <- cbind(object$data[, object$idvar, with = FALSE], object$between_logratio)[!duplicated(get(object$idvar))]
-    wlr <- cbind(object$data[, object$idvar, with = FALSE], object$within_logratio)[!duplicated(get(object$idvar))]
-    
-    out <- list(
-      summary(acomp(tcomp[, colnames(object$comp), with = FALSE]), robust = TRUE),
-      summary(acomp(bcomp[, colnames(object$between_comp), with = FALSE]), robust = TRUE),
-      summary(acomp(wcomp[, colnames(object$within_comp), with = FALSE]), robust = TRUE),
-      
-      summary(rmult(tlr[, colnames(object$logratio), with = FALSE])),
-      summary(rmult(blr[, colnames(object$between_logratio), with = FALSE])),
-      summary(rmult(wlr[, colnames(object$within_logratio), with = FALSE]))
-    )
-  }
-  
-  names(out) <- c("comp", "between_comp", "within_comp",
-                  "logratio", "between_logratio", "within_logratio")
-  out
-}
-
-#' @keywords internal
+#' Make plots for simulation results
 #' 
 #' @importFrom ggplot2 aes
 #' @importFrom ggplot2 coord_flip
 #' @importFrom ggplot2 element_blank
-#' @importFrom ggplot2 element_rect
-#' @importFrom ggplot2 element_text
-#' @importFrom ggplot2 facet_wrap
+#' @importFrom ggplot2 element_rect element_line element_text
+#' @importFrom ggplot2 facet_wrap label_context vars
 #' @importFrom ggplot2 ggplot
-#' @importFrom ggplot2 geom_hline
-#' @importFrom ggplot2 geom_linerange
-#' @importFrom ggplot2 geom_point
-#' @importFrom ggplot2 geom_segment
-#' @importFrom ggplot2 geom_text
+#' @importFrom ggplot2 geom_hline geom_point geom_segment geom_linerange geom_text
 #' @importFrom ggplot2 labs
-#' @importFrom ggplot2 scale_colour_manual
-#' @importFrom ggplot2 scale_x_discrete
-#' @importFrom ggplot2 scale_y_continuous
+#' @importFrom ggplot2 scale_colour_manual scale_x_discrete scale_y_continuous
 #' @importFrom ggplot2 theme
 #' @importFrom ggplot2 theme_void
 #' @importFrom ggplot2 unit
-#' @importFrom hrbrthemes theme_ipsum 
-NULL
-
-# plot for shiny sim
+#' @importFrom plotly ggplotly
+#' 
+#' @noRd
 .par_plot <- function(data, shiny = FALSE, d = 4, font = "Arial Narrow") {
   
   # colour palette --------------
@@ -219,11 +174,11 @@ NULL
   }
   
   point_size <- ifelse(shiny == TRUE, 2, 2.25)
-  line_size <- ifelse(shiny == TRUE, 0.75, 0.75)
+  line_size  <- ifelse(shiny == TRUE, 0.75, 0.75)
   btext_size <- ifelse(shiny == TRUE, 14, 12)
-  text_size <- ifelse(shiny == TRUE, 12, 13)
-  yseg <- y_breaks[[1]]
-  yendseg <- y_breaks[[3]]
+  text_size  <- ifelse(shiny == TRUE, 12, 13)
+  yseg       <- y_breaks[[1]]
+  yendseg    <- y_breaks[[3]]
   
   if (isTRUE(shiny)) {
     gg <- 
@@ -239,30 +194,26 @@ NULL
       scale_y_continuous(limits = y_lims,
                          breaks = y_breaks) +
       scale_x_discrete(drop = FALSE) +
-      # facet_wrap(ggplot2::vars(N, K), labeller = ggplot2::label_both) +
-      facet_wrap(ggplot2::vars(JI), labeller = ggplot2::label_context, strip.position = "top") +
-      theme_ipsum() +
+      facet_wrap(vars(JI), labeller = label_context, strip.position = "top") +
       coord_flip() +
+      theme_void() +
       theme(
         axis.ticks        = element_blank(),
         panel.background  = element_rect(fill = "transparent", colour = "black", linewidth = line_size),
         panel.border      = element_rect(fill = "transparent", colour = "black", linewidth = line_size),
-        # panel.grid.major  = element_blank(),
-        # panel.grid.minor  = element_blank(),
         plot.background   = element_rect(fill = "transparent", colour = NA),
-        axis.title.y      = element_text(size = btext_size, face = "bold"),
-        axis.title.x      = element_text(size = btext_size, face = "bold"),
-        axis.text.x       = element_text(size = text_size),
+        axis.title.y      = element_text(size = btext_size, face = "bold", family = font),
+        axis.title.x      = element_text(size = btext_size, face = "bold", family = font),
+        axis.text.x       = element_text(size = text_size, family = font),
         axis.text.y       = element_blank(),
-        title             = element_text(size = btext_size, face = "bold"),
-        legend.text       = element_text(size = text_size),
-        strip.text.x      = element_text(size = text_size),
+        title             = element_text(size = btext_size, face = "bold", family = font),
+        legend.text       = element_text(size = text_size, family = font),
+        strip.text.x      = element_text(size = text_size, family = font),
         legend.position   = "none",
         panel.spacing.y   = unit(0, "lines"),
         panel.spacing.x   = unit(0.75, "lines")
-        # strip.text.x      = element_blank()
       )
-    plotly::ggplotly(gg, height = 1300)
+    ggplotly(gg, height = 1300)
     
   } else {
     gg <- 
@@ -273,18 +224,14 @@ NULL
       geom_segment(aes(x = 0.5, xend = xvar, y = yintercept, yend = yintercept), color = "#666666", linetype = "dashed", linewidth = 0.5) +
       geom_segment(aes(y = yseg, yend = yendseg, x = 0.5, xend = 0.5), color = "black", linewidth = 0.5) +
       geom_text(aes(label = JI, y = yintercept, x = xtext), color = "black", family = font, vjust = "inward", hjust = "inward") +
-      # geom_hline(yintercept = yintercept, color = "#666666", linetype = "dashed", linewidth = 0.5) +
       geom_point(size = point_size) +
       geom_linerange(linewidth = line_size) +
-      # geom_segment(aes(x = "sigma", xend = xvar, y = yintercept, yend = yintercept), color = "#666666", linetype = "dashed", linewidth = 0.25) +
       labs(x = "", y = ylab, colour = "Parameter") +
       scale_colour_manual(values = col) +
       scale_y_continuous(limits = y_lims,
                          breaks = y_breaks) +
       scale_x_discrete(drop = FALSE, expand = c(0,1.05)) +
-      # facet_wrap(ggplot2::vars(N, K), labeller = ggplot2::label_both) +
-      # facet_wrap(ggplot2::vars(NK), labeller = ggplot2::label_context, strip.position = "top") +
-      hrbrthemes::theme_ipsum() + theme_void() +
+      theme_void() +
       coord_flip() +
       theme(
         axis.ticks        = element_blank(),
@@ -293,26 +240,14 @@ NULL
         panel.grid.major  = element_blank(),
         panel.grid.minor  = element_blank(),
         plot.background   = element_rect(fill = "transparent", colour = NA),
-        axis.title.y      = element_text(size = btext_size, face = "bold"),
-        # axis.title.x      = element_text(size = btext_size, face = "bold"),
-        # axis.text.x       = element_text(size = text_size),
-        # axis.text.y       = element_blank(),
-        # title             = element_blank(),
+        axis.title.y      = element_text(size = btext_size, face = "bold", family = font),
         legend.text       = element_blank(),
-        # strip.text.x      = element_text(size = text_size),
         legend.position   = "none",
-        # panel.grid.major  = element_blank(),
-        # panel.grid.minor  = element_blank(),
         axis.title.x      = element_blank(),
         axis.line.y       = element_blank(),
         axis.text.x       = element_text(size = text_size, family = font),
         axis.text.y       = element_blank()
-        # strip.text.x      = element_text(size = text_size, family = font),
-        # strip.background  = element_blank(),
-        # strip.placement   = "outside"
-        # strip.text.x      = element_blank()
       )
     gg
-    
   }
 }
